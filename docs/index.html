@@ -804,7 +804,7 @@ select {
       <label>IBAN <span class="req">*</span></label>
       <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00" maxlength="22" autocomplete="off"
         oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,22).replace(/(.{4})/g,'$1 ').trim()" />
-      <span class="hint">Nur Ihre eigene IBAN angeben (§&nbsp;670 BGB – Aufwendungsersatz).</span>
+      <span class="hint">Nur deine eigene IBAN angeben (§&nbsp;670 BGB – Aufwendungsersatz).</span>
     </div>
 
     <div class="field">
@@ -838,9 +838,9 @@ select {
     </div>
 
     <div class="field">
-      <label>Ihre E-Mail-Adresse <span class="req">*</span></label>
-      <input type="email" id="emailSender" placeholder="ihre@email.de" autocomplete="email" inputmode="email" />
-      <span class="hint">Sie erhalten eine Kopie der Abrechnung an diese Adresse.</span>
+      <label>Deine E-Mail-Adresse <span class="req">*</span></label>
+      <input type="email" id="emailSender" placeholder="deine@email.de" autocomplete="email" inputmode="email" />
+      <span class="hint">Du erhältst eine Kopie der Abrechnung an diese Adresse.</span>
     </div>
   </div>
 
@@ -896,7 +896,7 @@ select {
     </div>
 
     <p class="check-note">
-      Nach dem Absenden erhalten Sie das PDF an <strong>Ihre E-Mail-Adresse</strong>. Die Buchhaltung wird per <strong>BCC</strong> benachrichtigt. Bitte geben Sie die Originalbelege zusätzlich in der Verwaltung ab.
+      Nach dem Absenden erhältst du das PDF an <strong>deine E-Mail-Adresse</strong>. Die Buchhaltung wird per <strong>BCC</strong> benachrichtigt. Bitte gib die Originalbelege zusätzlich in der Verwaltung ab.
     </p>
   </div>
 
@@ -907,7 +907,7 @@ select {
   <div class="success-icon">✅</div>
   <h2>Abrechnung erstellt</h2>
   <p>Das PDF wurde per E-Mail versendet.</p>
-  <p class="warn-text">Vergessen Sie nicht, die Originalbelege in der Verwaltung abzugeben.</p>
+  <p class="warn-text">Vergiss nicht, die Originalbelege in der Verwaltung abzugeben.</p>
   <button class="btn-primary" onclick="startOver()">Neue Abrechnung erstellen</button>
 </div>
 
@@ -969,7 +969,7 @@ async function pdfFileToJpegDataUrl(file, pageNumber = 1, maxWidth = 1700) {
 }
 
 // ── Versand (Google Apps Script Web-App) ─────────────────────────────────────
-const SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwW7qTr7XM35A15IZ2wYy2HdMOWv7apcgv4NhQsJFsxuJ9dQHZOb0H-FGexGuKK3jE4/exec';
+const SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMxgAS0EbihPnfdxOMwtPtTIZaampv-TvihZF1fdQyAmjOpXXUAZXPEWBueVXebC3O/exec';
 const SCRIPT_TOKEN = 'Athanor2026__Abrechnung__s3cr3t__7Hk2Pp9QxLmN4vT6';
 
 const KATEGORIEN = [
@@ -1183,7 +1183,7 @@ function validate() {
     { id: 'projektname', label: 'Freigegeben durch' },
     { id: 'iban', label: 'IBAN' },
     { id: 'bankname', label: 'Name der Bank' },
-    { id: 'emailSender', label: 'Ihre E-Mail-Adresse' }
+    { id: 'emailSender', label: 'Deine E-Mail-Adresse' }
   ];
 
   required.forEach(f => {
@@ -1267,7 +1267,6 @@ async function buildPDF(receiptNo) {
   const plz = document.getElementById('plz').value.trim();
   const ort = document.getElementById('ort').value.trim();
   const land = document.getElementById('land').value.trim();
-  const anschrift = `${strasse}\n${plz} ${ort}`.trim() + `\n${land}`;
   const projektnummer = document.getElementById('projektnummer').value.trim();
   const projektname = document.getElementById('projektname').value.trim();
   const projekt = `${projektnummer} – ${projektname}`;
@@ -1339,6 +1338,7 @@ async function buildPDF(receiptNo) {
   const vorschussAbzug = vorschuss === 'ja' ? vorschussBetrag : 0;
   const total = totalBrutto - vorschussAbzug;
 
+  // ── Seite 1 ──
   doc.setFillColor(26, 26, 26);
   doc.rect(0, 0, 210, 14, 'F');
   doc.setFillColor(255, 45, 120);
@@ -1348,6 +1348,7 @@ async function buildPDF(receiptNo) {
   doc.setFontSize(9);
   doc.setTextColor(240, 240, 240);
   doc.text('Athanor Akademie Passau', 20, 9);
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(255, 45, 120);
@@ -1364,17 +1365,25 @@ async function buildPDF(receiptNo) {
   doc.setFontSize(17);
   doc.setTextColor(26, 26, 26);
   doc.text('Auslagenerstattung', 20, y);
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(110, 110, 110);
   doc.text('Erstellt am: ' + heute, 190, y, { align: 'right' });
 
-  y += 9;
+  // Vorgangsnummer prominent unter "Erstellt am"
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 26, 26);
+  doc.text(String(receiptNo || '').trim(), 190, y + 5.2, { align: 'right' });
+
+  y += 14;
   doc.setDrawColor(220, 215, 210);
   doc.setLineWidth(0.4);
   doc.line(20, y, 190, y);
   y += 8;
 
+  // Persönliche Angaben
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
@@ -1402,14 +1411,7 @@ async function buildPDF(receiptNo) {
     doc.setTextColor(130, 125, 120);
     doc.text(k + ':', 20, y);
     doc.setTextColor(30, 30, 30);
-
-    const value = String(v ?? '');
-    const lines = value.split('\n');
-    lines.forEach((line, idx) => {
-      if (idx > 0) y += 5.0;
-      doc.text(line, 65, y);
-    });
-
+    doc.text(String(v ?? ''), 65, y);
     y += 5.5;
   });
 
@@ -1419,6 +1421,7 @@ async function buildPDF(receiptNo) {
   doc.line(20, y, 190, y);
   y += 8;
 
+  // Tabelle
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
@@ -1458,6 +1461,7 @@ async function buildPDF(receiptNo) {
 
   y = doc.lastAutoTable.finalY + 10;
 
+  // GoBD Hinweis
   doc.setFillColor(255, 250, 225);
   doc.setDrawColor(200, 175, 60);
   doc.setLineWidth(0.4);
@@ -1470,6 +1474,7 @@ async function buildPDF(receiptNo) {
   doc.text('Die Originalbelege sind zusätzlich in der Verwaltung der Athanor Akademie Passau abzugeben (GoBD-konform).', 24, y + 10);
   y += 20;
 
+  // Bestätigung
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(30, 30, 30);
@@ -1485,6 +1490,7 @@ async function buildPDF(receiptNo) {
   doc.text(confirmText, 20, y);
   y += confirmText.length * 5 + 9;
 
+  // Unterschrift
   const sigDataUrl = getSignatureDataURL();
   y += 4;
 
@@ -1493,21 +1499,22 @@ async function buildPDF(receiptNo) {
   doc.line(20, y, 92, y);
 
   if (sigDataUrl) {
-    try {
-      doc.addImage(sigDataUrl, 'PNG', 20, y - 16, 72, 14);
-    } catch(e) {}
+    try { doc.addImage(sigDataUrl, 'PNG', 20, y - 16, 72, 14); } catch(e) {}
   }
 
   y += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(130, 125, 120);
-  doc.text('Datum, Unterschrift (Antragsteller/in)', 20, y);
+  // Datum automatisch
+  doc.text(`Datum: ${heute}  ·  Unterschrift (Antragsteller/in)`, 20, y);
 
+  // Footer Seite 1
   doc.setFontSize(7.5);
   doc.setTextColor(180, 175, 170);
   doc.text(`${receiptNo}  ·  Athanor Akademie Passau  ·  invoice@athanor.de  ·  Erstellt: ${heute}`, 105, 290, { align: 'center' });
 
+  // ── Folgeseiten: Belege ──
   for (let i = 0; i < posData.length; i++) {
     const p = posData[i];
 
@@ -1625,7 +1632,7 @@ async function submitForm() {
 
     if (!receiptNo) {
       const y = new Date().getFullYear();
-      receiptNo = `Auslage_${y}-TEMP`;
+      receiptNo = `Auslage_${y}-…`;
     }
 
     // 2) PDF bauen
@@ -1674,17 +1681,13 @@ async function submitForm() {
     if (overlaySub) overlaySub.textContent = 'E-Mail wird über den Server verschickt. Bitte nicht schließen.';
 
     let res;
-    try {
-      res = await fetch(SCRIPT_WEBAPP_URL, {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-store',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-    } catch (fetchErr) {
-      throw new Error('Netzwerkfehler beim Senden (fetch): ' + (fetchErr && fetchErr.message ? fetchErr.message : fetchErr));
-    }
+    res = await fetch(SCRIPT_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
 
     let text = '';
     try { text = await res.text(); } catch (_) {}
@@ -1721,7 +1724,7 @@ function startOver() {
 
 function resetForm(silent) {
   if (!silent && !confirm('Formular wirklich zurücksetzen? Alle Eingaben gehen verloren.')) return;
-  ['name','strasse','plz','ort','projektnummer','projektname','iban','bic','kontoinhaber','vorschussBetrag','emailSender'].forEach(id => {
+  ['name','strasse','plz','ort','projektnummer','projektname','iban','bic','kontoinhaber','vorschussBetrag','emailSender','bankname'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1750,7 +1753,6 @@ function resetForm(silent) {
 // ── Unterschrift (Canvas) ─────────────────────────────────────────────────
 let sigHasInk = false;
 let sigDrawing = false;
-let sigLast = { x: 0, y: 0 };
 
 function resizeSigPad() {
   const canvas = document.getElementById('sigPad');
@@ -1791,7 +1793,6 @@ function sigStart(e) {
   sigDrawing = true;
   canvas.classList.remove('err-pad');
   const p = getSigPoint(e);
-  sigLast = p;
   const ctx = canvas.getContext('2d');
   ctx.beginPath();
   ctx.moveTo(p.x, p.y);
@@ -1806,7 +1807,6 @@ function sigMove(e) {
   ctx.lineTo(p.x, p.y);
   ctx.stroke();
   sigHasInk = true;
-  sigLast = p;
   e.preventDefault();
 }
 
