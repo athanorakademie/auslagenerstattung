@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Auslagenerstattung – Athanor Akademie Passau</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Palette */
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface-raised: #f9f9f9;
+  --border: #e0e0e0;
+  --border-soft: #e8e8e8;
+
+  /* Neons */
+  --neon-magenta: #e8005a;
+  --neon-green: #00b83f;
+  --neon-yellow: #c9a800;
+
+  /* Grays */
+  --gray-dark: #1a1a1a;
+  --gray-helmet: #6e6e6e;
+  --gray-mid: #888;
+  --gray-light: #333;
+
+  /* Semantic */
+  --text: #1a1a1a;
+  --muted: var(--gray-mid);
+  --accent: var(--neon-magenta);
+  --accent-dim: rgba(232,0,90,0.08);
+  --success: var(--neon-green);
+  --success-bg: rgba(0,184,63,0.07);
+  --danger: #cc0000;
+  --danger-bg: rgba(204,0,0,0.06);
+  --warning: var(--neon-yellow);
+  --warning-bg: rgba(201,168,0,0.07);
+
+  --touch: 48px;
+  --radius: 8px;
+  --font: 'DM Sans', sans-serif;
+}
+
+/* ── Reset & Base ── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: 16px;
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0 0 6.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── Header ── */
+header {
+  background: #ffffff;
+  border-bottom: 2px solid var(--neon-magenta);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-wrap {
+  flex-shrink: 0;
+  width: 52px;
+  height: 41px;
+  border-radius: 4px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.header-text h1 {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.header-text p {
+  font-size: 0.75rem;
+  color: var(--neon-magenta);
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+
+/* ── Banner ── */
+.banner {
+  background: rgba(201,168,0,0.07);
+  border-left: 3px solid #c9a800;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.82rem;
+  color: #7a6300;
+  line-height: 1.55;
+}
+
+.banner strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+/* ── Section divider ── */
+.divider { height: 6px; background: var(--bg); }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-title {
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--neon-magenta);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.field:last-child { margin-bottom: 0; }
+
+label {
+  font-family: var(--font);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-helmet);
+  letter-spacing: 0.04em;
+}
+
+.req { color: var(--neon-magenta); margin-left: 2px; }
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+textarea {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  width: 100%;
+  min-height: var(--touch);
+  line-height: 1.2;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  caret-color: var(--neon-magenta);
+}
+
+/* Selects separat stylen (native Selects ignorieren teils vertical padding) */
+select {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  height: var(--touch);
+  line-height: var(--touch);
+  padding: 0 2.5rem 0 0.9rem;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 0 3px rgba(232,0,90,0.16);
+}
+
+/* Datepicker-Akzent (unterstützt in modernen Browsern; bei iOS/Android teils OS-gesteuert) */
+:root { accent-color: var(--neon-magenta); }
+
+select.err {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+input::placeholder, textarea::placeholder { color: var(--gray-helmet); }
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 0 3px rgba(255,45,120,0.12);
+}
+
+input.err, select.err {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.hint {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--gray-helmet);
+  line-height: 1.4;
+}
+
+/* date input – no invert needed on light bg */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.5;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.5rem;
+}
+
+/* ── Position cards ── */
+.position-card {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #fafafa;
+}
+
+.position-card.has-error { border-color: var(--danger); }
+
+.pos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.pos-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--neon-magenta);
+  letter-spacing: 0.05em;
+}
+
+.del-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.del-btn:active { border-color: var(--danger); color: var(--danger); }
+
+/* ── Per-position upload ── */
+.pos-upload { margin-top: 0.85rem; border-top: 1px solid var(--border); padding-top: 0.85rem; }
+
+.pos-upload-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-helmet);
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  background: #fafafa;
+  transition: border-color 0.15s, background 0.15s;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-zone.has-file {
+  border-color: var(--neon-green);
+  background: var(--success-bg);
+}
+
+.upload-zone.error-zone {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  min-height: unset;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.uz-text {
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  pointer-events: none;
+  line-height: 1.3;
+}
+
+.upload-zone.has-file .uz-text { color: var(--neon-green); }
+.upload-zone.error-zone .uz-text { color: var(--danger); }
+
+/* ── Total bar ── */
+.total-bar {
+  background: #1a1a1a;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.total-bar .tl {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #aaa;
+}
+
+.total-bar .tv {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+/* ── Original-hint ── */
+.original-hint {
+  background: rgba(201,168,0,0.07);
+  border: 1.5px solid #c9a800;
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: #7a6300;
+  line-height: 1.55;
+  margin-top: 0.85rem;
+}
+
+.original-hint strong { font-style: normal; font-weight: 700; }
+
+/* ── Add button ── */
+.add-btn {
+  width: 100%;
+  min-height: var(--touch);
+  background: none;
+  border: 2px dashed var(--neon-magenta);
+  border-radius: var(--radius);
+  color: var(--neon-magenta);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+
+.add-btn:active { background: var(--accent-dim); }
+
+/* ── Checkboxes ── */
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.check-row:last-of-type { border-bottom: none; }
+
+.check-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-top: 2px;
+  accent-color: var(--neon-magenta);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  border: 1.5px solid var(--border);
+}
+
+.check-row label {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--gray-light);
+  letter-spacing: 0;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+/* ── Unterschrift ── */
+.sig-wrap {
+  margin-top: 0.9rem;
+}
+
+.sig-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.sig-head .sig-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-helmet);
+  letter-spacing: 0.04em;
+}
+
+.sig-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sig-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0 0.9rem;
+  min-height: 40px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sig-btn:active { background: rgba(232,0,90,0.06); border-color: var(--neon-magenta); color: var(--neon-magenta); }
+
+.sig-pad {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: #fff;
+  touch-action: none;
+}
+
+.sig-pad.err-pad { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(204,0,0,0.08); }
+
+.sig-help {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--gray-helmet);
+  line-height: 1.45;
+}
+
+.check-note {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--gray-helmet);
+  margin-top: 0.75rem;
+  line-height: 1.5;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+@media (max-width: 420px) {
+  .sig-pad { height: 180px; }
+  .sig-btn { min-height: 44px; }
+}
+
+/* ── Error summary ── */
+.error-summary {
+  background: var(--danger-bg);
+  border: 1.5px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+  color: var(--danger);
+  margin-bottom: 0.85rem;
+  display: none;
+  line-height: 1.5;
+}
+
+.error-summary.active { display: block; }
+.error-summary ul { margin-left: 1.1rem; margin-top: 0.4rem; }
+.error-summary li { margin-top: 0.25rem; }
+
+/* ── Sticky footer ── */
+.sticky-actions {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #ffffff;
+  border-top: 2px solid var(--neon-magenta);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  z-index: 50;
+  box-shadow: 0 -4px 18px rgba(0,0,0,0.08);
+}
+
+.btn-secondary {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0 1.1rem;
+  min-height: var(--touch);
+  border-radius: var(--radius);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  flex: 1;
+  background: var(--neon-magenta);
+  border: none;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: var(--touch);
+  border-radius: var(--radius);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 5.5rem;
+  left: 1rem; right: 1rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #1a4d2e; color: #4ade80; }
+.toast.error { background: #4d1a1a; color: #f87171; }
+
+/* ── Sending overlay ── */
+.sending-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(245,245,245,0.84);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.sending-card {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.14);
+  padding: 1.25rem 1.15rem 1.1rem;
+  text-align: center;
+}
+
+.hourglass {
+  width: 44px;
+  height: 44px;
+  margin: 0.15rem auto 0.65rem;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(232,0,90,0.18), transparent 55%),
+    radial-gradient(circle at 50% 65%, rgba(232,0,90,0.12), transparent 58%),
+    linear-gradient(135deg, rgba(232,0,90,0.22), rgba(232,0,90,0.06));
+  position: relative;
+  overflow: hidden;
+}
+
+.hourglass::before,
+.hourglass::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 18px;
+  border: 2px solid rgba(232,0,90,0.55);
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 8px;
+}
+
+.hourglass::before { top: 6px; border-bottom: none; }
+.hourglass::after { bottom: 6px; border-top: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hourglass { animation: hg 1.15s ease-in-out infinite; }
+}
+
+@keyframes hg {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.sending-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.sending-text {
+  font-size: 0.92rem;
+  color: var(--gray-helmet);
+  line-height: 1.55;
+}
+
+.sending-sub {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--gray-mid);
+  line-height: 1.45;
+}
+
+/* ── Success screen ── */
+.success-screen {
+  display: none;
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.success-screen.active { display: block; }
+
+.success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+
+.success-screen h2 {
+  font-family: var(--font);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--neon-green);
+}
+
+.success-screen p {
+  font-size: 0.9rem;
+  color: var(--gray-mid);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.success-screen .warn-text {
+  font-style: italic;
+  color: var(--neon-yellow);
+  font-weight: 500;
+}
+
+.success-screen .btn-primary {
+  display: block;
+  width: 100%;
+  margin-top: 1.75rem;
+  position: static;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <img id="logoImg" alt="Athanor Akademie Passau" />
+  </div>
+  <div class="header-text">
+    <h1>Auslagenerstattung</h1>
+    <p>Athanor Akademie Passau</p>
+  </div>
+</header>
+
+<div class="banner">
+  <strong>Hinweis</strong>
+  Alle Felder vollständig ausfüllen. Für jede Position einen Beleg hochladen (JPEG oder PDF). Die <strong>Originalbelege sind zusätzlich in der Verwaltung abzugeben.</strong>
+</div>
+
+<div id="mainForm">
+
+  <div class="divider"></div>
+  <!-- 1. Persönliche Angaben -->
+  <div class="card">
+    <div class="card-title"><span class="step-dot">1</span> Persönliche Angaben</div>
+
+    <div class="field">
+      <label>Vollständiger Name <span class="req">*</span></label>
+      <input type="text" id="name" placeholder="Vorname Nachname" autocomplete="name" />
+    </div>
+
+    <div class="field">
+      <label>Straße &amp; Hausnummer <span class="req">*</span></label>
+      <input type="text" id="strasse" placeholder="Straße Hausnummer" autocomplete="address-line1" />
+    </div>
+
+    <div class="field">
+      <label>Postleitzahl <span class="req">*</span></label>
+      <input type="text" id="plz" placeholder="z.B. 94034" inputmode="numeric" autocomplete="postal-code" maxlength="10"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
+    </div>
+
+    <div class="field">
+      <label>Ort <span class="req">*</span></label>
+      <input type="text" id="ort" placeholder="z.B. Passau" autocomplete="address-level2" />
+    </div>
+
+    <div class="field">
+      <label>Land <span class="req">*</span></label>
+      <select id="land" autocomplete="country-name">
+        <option value="">Bitte wählen …</option>
+        <option value="Deutschland" selected>Deutschland</option>
+        <option value="Österreich">Österreich</option>
+        <option value="Schweiz">Schweiz</option>
+        <option value="Frankreich">Frankreich</option>
+        <option value="Italien">Italien</option>
+        <option value="Sonstiges">Sonstiges</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Grund der Auslage <span class="req">*</span></label>
+      <input type="text" id="projektnummer" placeholder="z.B. Workshop, Termin, Beschaffung" />
+    </div>
+
+    <div class="field">
+      <label>Freigegeben durch <span class="req">*</span></label>
+      <input type="text" id="projektname" placeholder="Akademieleitung / Geschäftsführung" />
+    </div>
+
+    <div class="field">
+      <label>IBAN <span class="req">*</span></label>
+      <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00" maxlength="22" autocomplete="off"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,22).replace(/(.{4})/g,'$1 ').trim()" />
+      <span class="hint">Nur Ihre eigene IBAN angeben (§&nbsp;670 BGB – Aufwendungsersatz).</span>
+    </div>
+
+    <div class="field">
+      <label>Name der Bank <span class="req">*</span></label>
+      <input type="text" id="bankname" placeholder="z.B. Sparkasse" autocomplete="organization" />
+    </div>
+
+    <div class="field">
+      <label>BIC / SWIFT <span class="req" id="bicReq" style="display:none;">*</span> <span id="bicOptLabel" style="display:none;font-size:0.72rem;font-weight:400;color:var(--gray-helmet);">(optional bei deutscher IBAN)</span></label>
+      <input type="text" id="bic" placeholder="z.B. SSKMDEMMXXX" maxlength="11" autocomplete="off"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" />
+      <span class="hint" id="bicHint">Pflichtangabe bei österreichischen und internationalen Konten.</span>
+    </div>
+
+    <div class="field">
+      <label>Kontoinhaber (falls abweichend)</label>
+      <input type="text" id="kontoinhaber" placeholder="Optional" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label>Vorschuss erhalten?</label>
+      <select id="vorschuss">
+        <option value="nein">Nein</option>
+        <option value="ja">Ja</option>
+      </select>
+    </div>
+
+    <div class="field" id="vorschussBetragField" style="display:none;">
+      <label>Vorschussbetrag (€)</label>
+      <input type="number" id="vorschussBetrag" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="field">
+      <label>Ihre E-Mail-Adresse <span class="req">*</span></label>
+      <input type="email" id="emailSender" placeholder="ihre@email.de" autocomplete="email" inputmode="email" />
+      <span class="hint">Sie erhalten eine Kopie der Abrechnung an diese Adresse.</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <!-- 2. Positionen -->
+  <div class="card">
+    <div class="card-title"><span class="step-dot">2</span> Ausgaben &amp; Belege</div>
+
+    <div id="errorSummary" class="error-summary"></div>
+    <div id="positions"></div>
+
+    <button class="add-btn" onclick="addPosition()">+ Weitere Position hinzufügen</button>
+
+    <div class="total-bar">
+      <span class="tl">Gesamtbetrag</span>
+      <span class="tv" id="total">0,00 €</span>
+    </div>
+
+    <div class="original-hint">
+      <strong>Originalbelege abgeben:</strong> Gemäß den Anforderungen der GoBD und des deutschen Steuerrechts sind Originalbelege zusätzlich zu diesem digitalen Formular in der Verwaltung der Athanor Akademie Passau abzugeben.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <!-- 3. Bestätigung -->
+  <div class="card">
+    <div class="card-title"><span class="step-dot">3</span> Bestätigung</div>
+
+    <div class="check-row">
+      <input type="checkbox" id="confirmCorrect" />
+      <label for="confirmCorrect">Ich bestätige, dass alle Angaben wahrheitsgemäß und vollständig sind. Die aufgeführten Ausgaben wurden beruflich veranlasst und noch nicht anderweitig erstattet (§&nbsp;670 BGB).</label>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="confirmOriginals" />
+      <label for="confirmOriginals">Ich bin mir bewusst, dass ich die Originalbelege zusätzlich in der Verwaltung abgeben muss.</label>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="confirmQuality" />
+      <label for="confirmQuality">Ich bestätige, dass alle hochgeladenen Belege gut lesbar sind und Datum, Betrag sowie Zweck klar erkennbar zeigen.</label>
+    </div>
+
+    <div class="sig-wrap">
+      <div class="sig-head">
+        <div class="sig-label">Unterschrift <span class="req">*</span></div>
+        <div class="sig-actions">
+          <button class="sig-btn" type="button" onclick="clearSignature()">Leeren</button>
+        </div>
+      </div>
+      <canvas id="sigPad" class="sig-pad" aria-label="Unterschrift"></canvas>
+      <div class="sig-help">Mit dem Finger oder Stift unterschreiben. Falls die Fläche leer bleibt, kann das PDF nicht erstellt werden.</div>
+    </div>
+
+    <p class="check-note">
+      Nach dem Absenden wird das PDF automatisch an <strong>invoice@athanor.de</strong> gesendet (CC an Ihre E-Mail-Adresse). Bitte geben Sie die Originalbelege zusätzlich in der Verwaltung ab.
+    </p>
+  </div>
+
+</div><!-- /mainForm -->
+
+<!-- Erfolgsanzeige -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <h2>Abrechnung erstellt</h2>
+  <p>Das PDF wurde per E-Mail versendet.</p>
+  <p class="warn-text">Vergessen Sie nicht, die Originalbelege in der Verwaltung abzugeben.</p>
+  <button class="btn-primary" onclick="startOver()">Neue Abrechnung erstellen</button>
+</div>
+
+<!-- Sticky Footer -->
+<div class="sticky-actions" id="stickyActions">
+  <button class="btn-secondary" onclick="resetForm()">↺ Reset</button>
+  <button class="btn-primary" id="submitBtn" onclick="submitForm()">PDF erstellen &amp; senden →</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Versandstatus (wird beim Senden eingeblendet) -->
+<div class="sending-overlay" id="sendingOverlay" role="status" aria-live="polite" aria-atomic="true" style="display:none;">
+  <div class="sending-card">
+    <div class="hourglass" aria-hidden="true"></div>
+    <div class="sending-title">Bitte warten …</div>
+    <div class="sending-text" id="sendingText">PDF wird erstellt und versendet. Bitte nicht schließen.</div>
+    <div class="sending-sub" id="sendingSub">Je nach Anzahl/Größe der Belege kann das etwas dauern.</div>
+  </div>
+</div>
+
+<!-- Logo inline (Base64) -->
+<script>
+// Logo einbetten (funktioniert auch auf localhost/webspace ohne "attachment/"-Pfad)
+(function(){
+  const img = document.getElementById('logoImg');
+  if (!img) return;
+
+  // Fallback: initials box wenn Bild nicht lädt
+  img.onerror = function() {
+    img.style.display = 'none';
+    img.parentElement.innerHTML = '<span style="font-weight:700;font-size:0.65rem;color:#222;line-height:1;text-align:center;">Athanor<br>Akademie</span>';
+  };
+
+  // Embedded logo (data URI) – works on localhost/webspace without any extra files
+  img.src = 'data:image/png;base64,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';
+})();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+// Cap PDF receipt rendering width based on file size (keeps memory + base64 reasonable)
+function maxWidthForPdfReceipt_(fileSizeBytes) {
+  if (!fileSizeBytes) return 1500;
+  if (fileSizeBytes > 12 * 1024 * 1024) return 1200;
+  if (fileSizeBytes > 6 * 1024 * 1024) return 1400;
+  return 1600;
+}
+
+// pdf.js worker
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function pdfFileToJpegDataUrl(file, pageNumber = 1, maxWidth = 1700) {
+  // Render a single PDF page to a JPEG data URL (used to embed PDF receipts visibly).
+  // Note: we intentionally keep this async+canvas based so it works offline/client-side.
+
+  if (!window.pdfjsLib) throw new Error('PDF-Renderer nicht geladen.');
+  const ab = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+  const page = await pdf.getPage(pageNumber);
+
+  // Render scale based on desired max width
+  const viewport1 = page.getViewport({ scale: 1 });
+  const scale = Math.min(3, Math.max(1, maxWidth / viewport1.width));
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  // JPEG compress to keep size reasonable
+  return canvas.toDataURL('image/jpeg', 0.86);
+}
+
+// ── Versand (Google Apps Script Web-App) ─────────────────────────────────────
+const SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwW7qTr7XM35A15IZ2wYy2HdMOWv7apcgv4NhQsJFsxuJ9dQHZOb0H-FGexGuKK3jE4/exec';
+const SCRIPT_TOKEN = 'Athanor2026__Abrechnung__s3cr3t__7Hk2Pp9QxLmN4vT6';
+
+const KATEGORIEN = [
+  'Aufmerksamkeiten extern',
+  'Aufmerksamkeiten intern',
+  'Bewirtung extern',
+  'Bewirtung intern',
+  'Bürobedarf',
+  'Fahrt- & Flugkosten',
+  'Parkgebühren',
+  'Porto',
+  'Reisekosten sonstige',
+  'Reparatur',
+  'Sonstiges',
+  'Tankkosten',
+  'Übernachtung',
+  'Verpflegung'
+];
+
+let positions = [];
+let posId = 0;
+
+// ── Dynamische UI-Logik ──────────────────────────────────────────────────────
+document.getElementById('iban').addEventListener('input', function() {
+  const val = this.value.replace(/\s/g, '').toUpperCase();
+  const isDE = val.startsWith('DE');
+  document.getElementById('bicReq').style.display = isDE ? 'none' : '';
+  document.getElementById('bicOptLabel').style.display = isDE ? '' : 'none';
+  document.getElementById('bicHint').textContent = isDE
+    ? 'Bei deutschen Konten optional, aber empfohlen.'
+    : 'Pflichtangabe bei österreichischen und internationalen Konten.';
+});
+
+document.getElementById('vorschuss').addEventListener('change', function() {
+  document.getElementById('vorschussBetragField').style.display =
+    this.value === 'ja' ? '' : 'none';
+  updateTotal();
+});
+
+document.getElementById('vorschussBetrag').addEventListener('input', function() {
+  updateTotal();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+addPosition();
+
+function addPosition() {
+  const id = posId++;
+  positions.push({ id, file: null, fileDataURL: null });
+  renderPositions();
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.position-card');
+    if (cards.length > 1) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 80);
+}
+
+function removePosition(id) {
+  if (positions.length === 1) { showToast('Mindestens eine Position ist erforderlich.', 'error'); return; }
+  positions = positions.filter(p => p.id !== id);
+  renderPositions();
+  updateTotal();
+}
+
+function renderPositions() {
+  const container = document.getElementById('positions');
+  const saved = {};
+  positions.forEach(p => {
+    const d = document.getElementById('datum_' + p.id);
+    const b = document.getElementById('beschr_' + p.id);
+    const k = document.getElementById('kat_' + p.id);
+    const bt = document.getElementById('betrag_' + p.id);
+    if (d) saved[p.id] = { datum: d.value, beschr: b.value, kat: k.value, betrag: bt.value };
+  });
+
+  container.innerHTML = '';
+  positions.forEach((p, i) => {
+    const s = saved[p.id] || {};
+    const fn = p.file ? p.file.name : null;
+    const div = document.createElement('div');
+    div.className = 'position-card';
+    div.id = 'poscard_' + p.id;
+    div.innerHTML = `
+      <div class="pos-header">
+        <span class="pos-number">Position ${i + 1}</span>
+        ${positions.length > 1
+          ? `<button class="del-btn" onclick="removePosition(${p.id})">✕ Entfernen</button>`
+          : ''}
+      </div>
+
+      <div class="field">
+        <label>Datum der Ausgabe <span class="req">*</span></label>
+        <input type="date" id="datum_${p.id}" value="${s.datum||''}"
+          max="${new Date().toISOString().split('T')[0]}"
+          onchange="updateTotal()" />
+      </div>
+
+      <div class="field">
+        <label>Beschreibung / Zweck <span class="req">*</span></label>
+        <input type="text" id="beschr_${p.id}" value="${s.beschr||''}"
+          placeholder="z.B. Bahnticket München–Passau" />
+        <span class="hint">Betrieblichen Zweck klar benennen (Finanzamt-Anforderung).</span>
+      </div>
+
+      <div class="field">
+        <label>Kategorie <span class="req">*</span></label>
+        <select id="kat_${p.id}">
+          <option value="">Bitte wählen …</option>
+          ${KATEGORIEN.map(k => `<option value="${k}"${s.kat===k?' selected':''}>${k}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Betrag (brutto, inkl. MwSt.) <span class="req">*</span></label>
+        <input type="number" id="betrag_${p.id}" value="${s.betrag||''}"
+          placeholder="0,00" min="0.01" step="0.01" inputmode="decimal"
+          onchange="updateTotal()" oninput="updateTotal()" />
+        <span class="hint">Bruttobetrag laut Beleg in Euro.</span>
+      </div>
+
+      <div class="pos-upload">
+        <span class="pos-upload-label">Beleg <span class="req">*</span></span>
+        <div class="upload-zone ${fn ? 'has-file' : ''}" id="zone_${p.id}"
+          onclick="document.getElementById('file_${p.id}').click()">
+          <input type="file" id="file_${p.id}"
+            accept="image/jpeg,image/jpg,application/pdf"
+            onchange="handleFile(${p.id}, this)" />
+          <span class="uz-text" id="ztext_${p.id}">
+            ${fn ? '✓ ' + fn : '📎 JPEG oder PDF auswählen'}
+          </span>
+        </div>
+        <span class="hint" style="margin-top:0.35rem;display:block;">
+          <em>Nur JPEG und PDF. Max. 20 MB. Auf gute Lesbarkeit achten.</em>
+        </span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  updateTotal();
+}
+
+function handleFile(pid, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const allowed = ['image/jpeg', 'image/jpg', 'application/pdf'];
+  if (!allowed.includes(file.type)) {
+    showToast('Nur JPEG-Bilder und PDF-Dateien sind zulässig.', 'error');
+    input.value = '';
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('Die Datei ist zu groß (max. 20 MB).', 'error');
+    input.value = '';
+    return;
+  }
+  const pos = positions.find(p => p.id === pid);
+  if (!pos) return;
+  pos.file = file;
+  const reader = new FileReader();
+  reader.onload = e => { pos.fileDataURL = e.target.result; };
+  reader.readAsDataURL(file);
+  const zone = document.getElementById('zone_' + pid);
+  const ztext = document.getElementById('ztext_' + pid);
+  if (zone) { zone.classList.add('has-file'); zone.classList.remove('error-zone'); }
+  if (ztext) ztext.textContent = '✓ ' + file.name;
+}
+
+function getVorschussBetrag() {
+  const v = document.getElementById('vorschuss')?.value;
+  if (v !== 'ja') return 0;
+  const n = parseFloat(document.getElementById('vorschussBetrag')?.value || 0);
+  return (!isNaN(n) && n > 0) ? n : 0;
+}
+
+function updateTotal() {
+  let sum = 0;
+  positions.forEach(p => {
+    const el = document.getElementById('betrag_' + p.id);
+    if (el) { const v = parseFloat(el.value); if (!isNaN(v) && v > 0) sum += v; }
+  });
+
+  const vorschuss = getVorschussBetrag();
+  const netto = sum - vorschuss;
+
+  const totalEl = document.getElementById('total');
+  if (!totalEl) return;
+
+  if (vorschuss > 0) {
+    const sumStr = sum.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const vorStr = vorschuss.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const netStr = netto.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    totalEl.innerHTML = `${netStr} €<div style="font-size:0.72rem;font-weight:500;color:#bbb;">${sumStr} € minus ${vorStr} € Vorschuss</div>`;
+    totalEl.style.color = netto < 0 ? 'var(--neon-magenta)' : '#ffffff';
+  } else {
+    totalEl.textContent = sum.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    totalEl.style.color = '#ffffff';
+  }
+}
+
+// ── Validation ──────────────────────────────────────────────────────────────
+function validate() {
+  const errors = [];
+  clearErrors();
+
+  const required = [
+    { id: 'name', label: 'Vollständiger Name' },
+    { id: 'strasse', label: 'Straße & Hausnummer' },
+    { id: 'plz', label: 'Postleitzahl' },
+    { id: 'ort', label: 'Ort' },
+    { id: 'land', label: 'Land' },
+    { id: 'projektnummer', label: 'Grund der Auslage' },
+    { id: 'projektname', label: 'Freigegeben durch' },
+    { id: 'iban', label: 'IBAN' },
+    { id: 'bankname', label: 'Name der Bank' },
+    { id: 'emailSender', label: 'Ihre E-Mail-Adresse' }
+  ];
+
+  required.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!el.value.trim()) { el.classList.add('err'); errors.push(f.label + ' fehlt.'); }
+  });
+
+
+  // BIC: Pflicht wenn IBAN nicht mit DE beginnt
+  const ibanVal = document.getElementById('iban').value.replace(/\s/g, '').slice(0,22);
+  const isDeIban = ibanVal.toUpperCase().startsWith('DE');
+  const bicVal = document.getElementById('bic').value.trim();
+  if (!isDeIban && !bicVal) {
+    document.getElementById('bic').classList.add('err');
+    errors.push('BIC / SWIFT ist bei nicht-deutschen IBANs Pflicht.');
+  }
+  if (ibanVal && (ibanVal.length < 15 || ibanVal.length > 22 || !/^[A-Z]{2}/i.test(ibanVal))) {
+    document.getElementById('iban').classList.add('err');
+    errors.push('IBAN hat ein ungültiges Format.');
+  }
+
+  const emailEl = document.getElementById('emailSender');
+  if (emailEl.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
+    emailEl.classList.add('err');
+    errors.push('E-Mail-Adresse ist ungültig.');
+  }
+
+  positions.forEach((p, i) => {
+    const datum = document.getElementById('datum_' + p.id)?.value;
+    const beschr = document.getElementById('beschr_' + p.id)?.value.trim();
+    const kat = document.getElementById('kat_' + p.id)?.value;
+    const betrag = parseFloat(document.getElementById('betrag_' + p.id)?.value);
+    const card = document.getElementById('poscard_' + p.id);
+    let posErr = false;
+
+    if (!datum) { document.getElementById('datum_' + p.id).classList.add('err'); errors.push(`Position ${i+1}: Datum fehlt.`); posErr = true; }
+    if (!beschr) { document.getElementById('beschr_' + p.id).classList.add('err'); errors.push(`Position ${i+1}: Beschreibung fehlt.`); posErr = true; }
+    if (!kat) { document.getElementById('kat_' + p.id).classList.add('err'); errors.push(`Position ${i+1}: Kategorie fehlt.`); posErr = true; }
+    if (!betrag || betrag <= 0) { document.getElementById('betrag_' + p.id).classList.add('err'); errors.push(`Position ${i+1}: Betrag fehlt.`); posErr = true; }
+    if (!p.file) {
+      const zone = document.getElementById('zone_' + p.id);
+      if (zone) zone.classList.add('error-zone');
+      errors.push(`Position ${i+1}: Beleg fehlt.`);
+      posErr = true;
+    }
+    if (posErr && card) card.classList.add('has-error');
+  });
+
+  if (!document.getElementById('confirmCorrect').checked) errors.push('Bitte Richtigkeit der Angaben bestätigen.');
+  if (!document.getElementById('confirmOriginals').checked) errors.push('Bitte Abgabe der Originalbelege bestätigen.');
+  if (!document.getElementById('confirmQuality').checked) errors.push('Bitte Lesbarkeit der Belege bestätigen.');
+
+  if (!hasSignature()) {
+    const pad = document.getElementById('sigPad');
+    if (pad) pad.classList.add('err-pad');
+    errors.push('Unterschrift fehlt.');
+  }
+
+  if (errors.length > 0) {
+    const s = document.getElementById('errorSummary');
+    s.innerHTML = '<strong>Bitte folgende Felder prüfen:</strong><ul>' + errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+    s.classList.add('active');
+    s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
+  return true;
+}
+
+function clearErrors() {
+  document.querySelectorAll('.err').forEach(el => el.classList.remove('err'));
+  document.querySelectorAll('.error-zone').forEach(el => el.classList.remove('error-zone'));
+  document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+  const pad = document.getElementById('sigPad');
+  if (pad) pad.classList.remove('err-pad');
+  document.getElementById('errorSummary').classList.remove('active');
+}
+
+// ── PDF ─────────────────────────────────────────────────────────────────────
+async function buildPDF(receiptNo) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const name = document.getElementById('name').value.trim();
+  const strasse = document.getElementById('strasse').value.trim();
+  const plz = document.getElementById('plz').value.trim();
+  const ort = document.getElementById('ort').value.trim();
+  const land = document.getElementById('land').value.trim();
+  const anschrift = `${strasse}\n${plz} ${ort}`.trim() + `\n${land}`;
+  const projektnummer = document.getElementById('projektnummer').value.trim();
+  const projektname = document.getElementById('projektname').value.trim();
+  const projekt = `${projektnummer} – ${projektname}`;
+
+  // Formular-Modus (vereinheitlicht: dieses Formular ist Auslagenerstattung)
+  const art = 'auslage';
+  const anlass = projektnummer;
+
+  const iban = document.getElementById('iban').value.trim();
+  const bankname = document.getElementById('bankname').value.trim();
+  const bic = document.getElementById('bic').value.trim();
+  const kontoinhaber = document.getElementById('kontoinhaber').value.trim();
+  const vorschuss = document.getElementById('vorschuss').value;
+  const vorschussBetrag = vorschuss === 'ja' ? (parseFloat(document.getElementById('vorschussBetrag').value) || 0) : 0;
+  const emailSender = document.getElementById('emailSender').value.trim();
+  const heute = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  const posData = await Promise.all(positions.map(async p => {
+    const file = p.file;
+    let fileDataURL = p.fileDataURL;
+
+    // If receipt is a PDF, render ALL pages to JPEG so they are visible in the final PDF
+    // (each rendered page becomes its own appended page in the output PDF).
+    let receiptImages = null;
+    if (file && file.type === 'application/pdf') {
+      try {
+        receiptImages = [];
+        if (!window.pdfjsLib) throw new Error('PDF-Renderer nicht geladen.');
+
+        const ab = await file.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+        const numPages = Math.min(pdf.numPages || 1, 20); // safety cap
+
+        for (let pg = 1; pg <= numPages; pg++) {
+          // Slightly smaller maxWidth to keep memory + payload reasonable
+          const img = await (async () => {
+            const page = await pdf.getPage(pg);
+            const viewport1 = page.getViewport({ scale: 1 });
+            const scale = Math.min(2.2, Math.max(1, maxWidthForPdfReceipt_(file.size) / viewport1.width));
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            return canvas.toDataURL('image/jpeg', 0.86);
+          })();
+
+          receiptImages.push(img);
+        }
+
+        // Use first page as the legacy single-image field (backwards compatible)
+        fileDataURL = receiptImages[0] || null;
+
+      } catch (e) {
+        // Keep null/old value; we'll show a warning page
+        receiptImages = null;
+        fileDataURL = null;
+      }
+    }
+
+    return {
+      datum: document.getElementById('datum_' + p.id)?.value || '',
+      beschreibung: document.getElementById('beschr_' + p.id)?.value || '',
+      kategorie: document.getElementById('kat_' + p.id)?.value || '',
+      betrag: parseFloat(document.getElementById('betrag_' + p.id)?.value || 0) || 0,
+      file,
+      fileDataURL,
+      receiptImages
+    };
+  }));
+
+  const totalBrutto = posData.reduce((s, p) => s + p.betrag, 0);
+  const vorschussAbzug = vorschuss === 'ja' ? vorschussBetrag : 0;
+  const total = totalBrutto - vorschussAbzug;
+
+  // ── Seite 1: Abrechnung ──
+  // Header-Balken
+  doc.setFillColor(26, 26, 26);
+  doc.rect(0, 0, 210, 14, 'F');
+  doc.setFillColor(255, 45, 120);
+  doc.rect(0, 13, 210, 1.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(240, 240, 240);
+  doc.text('Athanor Akademie Passau', 20, 9);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 45, 120);
+  doc.text('Auslagenerstattung', 190, 9, { align: 'right' });
+
+  // Akademie-Anschrift
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(220, 220, 220);
+  doc.text('Schulbergstr. 30, 94034 Passau', 20, 12.2);
+
+  let y = 24;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(17);
+  doc.setTextColor(26, 26, 26);
+  doc.text('Auslagenerstattung', 20, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(110, 110, 110);
+  doc.text('Erstellt am: ' + heute, 190, y, { align: 'right' });
+
+  y += 9;
+  doc.setDrawColor(220, 215, 210);
+  doc.setLineWidth(0.4);
+  doc.line(20, y, 190, y);
+  y += 8;
+
+  // Persönliche Angaben
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(50, 50, 50);
+  doc.text('Angaben zur Person', 20, y);
+  y += 7;
+
+  const infoRows = [
+    ['Name', name],
+    ['Straße / Haus', strasse],
+    ['PLZ / Ort', `${plz} ${ort}`.trim()],
+    ['Land', land],
+    ['E-Mail', emailSender],
+    ['Grund der Auslage', anlass],
+    ['Freigegeben durch', projektname],
+    ['IBAN', iban],
+    ['Name der Bank', bankname],
+    ...(bic ? [['BIC / SWIFT', bic]] : []),
+    ...(kontoinhaber ? [['Kontoinhaber', kontoinhaber]] : []),
+    ['Vorschuss erhalten', vorschuss === 'ja' ? `Ja – ${vorschussBetrag.toLocaleString('de-DE', {minimumFractionDigits:2})} €` : 'Nein']
+  ];
+
+  infoRows.forEach(([k, v]) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(130, 125, 120);
+    doc.text(k + ':', 20, y);
+    doc.setTextColor(30, 30, 30);
+
+    // Value column: allow multi-line (e.g., address split into multiple lines)
+    const value = String(v ?? '');
+    const lines = value.split('\n');
+    lines.forEach((line, idx) => {
+      if (idx > 0) y += 5.0;
+      doc.text(line, 65, y);
+    });
+
+    y += 5.5;
+  });
+
+  y += 5;
+  doc.setDrawColor(220, 215, 210);
+  doc.setLineWidth(0.3);
+  doc.line(20, y, 190, y);
+  y += 8;
+
+  // Positionen-Tabelle
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(50, 50, 50);
+  doc.text('Aufstellung der Ausgaben', 20, y);
+  y += 5;
+
+  const tableBody = posData.map((p, i) => [
+    String(i + 1),
+    p.datum ? new Date(p.datum).toLocaleDateString('de-DE') : '—',
+    p.beschreibung,
+    p.kategorie,
+    p.betrag.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €'
+  ]);
+
+  doc.autoTable({
+    startY: y,
+    head: [['#', 'Datum', 'Beschreibung / Zweck', 'Kategorie', 'Betrag (€)']],
+    body: tableBody,
+    foot: [
+      ['', '', '', 'Summe Positionen (brutto)', totalBrutto.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €'],
+      ['', '', '', 'Abzug Vorschuss', (vorschussAbzug > 0 ? ('-' + vorschussAbzug.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €') : '0,00 €')],
+      ['', '', '', 'Auszahlungsbetrag', total.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €']
+    ],
+    styles: { font: 'helvetica', fontSize: 9, cellPadding: 3, textColor: [30, 30, 30] },
+    headStyles: { fillColor: [26, 26, 26], textColor: [240, 240, 240], fontStyle: 'bold', fontSize: 9 },
+    footStyles: { fillColor: [240, 238, 235], textColor: [50, 50, 50], fontStyle: 'bold', fontSize: 9 },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 26 },
+      3: { cellWidth: 42 },
+      4: { halign: 'right', cellWidth: 30 }
+    },
+    alternateRowStyles: { fillColor: [250, 249, 248] },
+    margin: { left: 20, right: 20 },
+    theme: 'grid'
+  });
+
+  y = doc.lastAutoTable.finalY + 10;
+
+  // GoBD-Hinweis
+  doc.setFillColor(255, 250, 225);
+  doc.setDrawColor(200, 175, 60);
+  doc.setLineWidth(0.4);
+  doc.rect(20, y, 170, 13, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 75, 0);
+  doc.text('Hinweis:', 24, y + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Die Originalbelege sind zusätzlich in der Verwaltung der Athanor Akademie Passau abzugeben (GoBD-konform).', 24, y + 10);
+  y += 20;
+
+  // Bestätigung
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(30, 30, 30);
+  doc.text('Bestätigung der antragstellenden Person', 20, y);
+  y += 5;
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8.5);
+  doc.setTextColor(70, 65, 60);
+  const confirmText = doc.splitTextToSize(
+    'Ich bestätige hiermit, dass alle Angaben wahrheitsgemäß und vollständig sind. Die aufgeführten Ausgaben wurden beruflich veranlasst und wurden noch nicht anderweitig erstattet (§ 670 BGB). Die Originalbelege werden in der Verwaltung abgegeben.',
+    170
+  );
+  doc.text(confirmText, 20, y);
+  y += confirmText.length * 5 + 9;
+
+  // Unterschrift einbetten
+  const sigDataUrl = getSignatureDataURL();
+
+  // Mehr vertikaler Abstand, damit die Unterschrift nichts überdeckt
+  y += 4;
+
+  doc.setDrawColor(150, 145, 140);
+  doc.setLineWidth(0.4);
+  doc.line(20, y, 92, y);
+
+  if (sigDataUrl) {
+    try {
+      // Bild über die Linie platzieren (mit mehr Abstand nach oben)
+      doc.addImage(sigDataUrl, 'PNG', 20, y - 16, 72, 14);
+    } catch(e) {
+      // Falls Einbetten fehlschlägt: Linie bleibt
+    }
+  }
+
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(130, 125, 120);
+  doc.text('Datum, Unterschrift (Antragsteller/in)', 20, y);
+
+  // Footer Seite 1
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 175, 170);
+  doc.text(`${receiptNo}  ·  Athanor Akademie Passau  ·  invoice@athanor.de  ·  Erstellt: ${heute}`, 105, 290, { align: 'center' });
+
+  // ── Folgeseiten: Belege ──
+  for (let i = 0; i < posData.length; i++) {
+    const p = posData[i];
+
+    // Build receipt pages list (images). For PDFs we render multiple pages.
+    const images = Array.isArray(p.receiptImages) && p.receiptImages.length
+      ? p.receiptImages
+      : (p.fileDataURL ? [p.fileDataURL] : []);
+
+    if (!images.length) {
+      // Still add a warning page if a receipt exists but couldn't be rendered.
+      if (p.file) {
+        doc.addPage();
+
+        doc.setFillColor(26, 26, 26);
+        doc.rect(0, 0, 210, 10, 'F');
+        doc.setFillColor(255, 45, 120);
+        doc.rect(0, 9.5, 210, 1, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(240, 240, 240);
+        doc.text('Athanor Akademie Passau  ·  Beleg zur Auslagenerstattung', 20, 7);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(50, 50, 50);
+        doc.text(`Beleg ${i + 1} von ${posData.length}: ${p.beschreibung}`, 20, 18);
+
+        doc.setFontSize(9);
+        doc.setTextColor(180, 0, 0);
+        doc.text('Beleg konnte nicht eingebettet werden: ' + (p.file ? p.file.name : ''), 20, 40);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(80, 75, 70);
+        doc.text('Bitte Beleg als JPEG hochladen oder PDF erneut versuchen.', 20, 48);
+
+        doc.setFontSize(7.5);
+        doc.setTextColor(180, 175, 170);
+        doc.text(`${receiptNo || ''}  ·  Seite ${doc.internal.getNumberOfPages()}  ·  Athanor Akademie Passau  ·  ${name}  ·  ${projekt}`, 105, 290, { align: 'center' });
+      }
+      continue;
+    }
+
+    for (let pg = 0; pg < images.length; pg++) {
+      const imgUrl = images[pg];
+      doc.addPage();
+
+      doc.setFillColor(26, 26, 26);
+      doc.rect(0, 0, 210, 10, 'F');
+      doc.setFillColor(255, 45, 120);
+      doc.rect(0, 9.5, 210, 1, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(240, 240, 240);
+      doc.text('Athanor Akademie Passau  ·  Beleg zur Auslagenerstattung', 20, 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(50, 50, 50);
+      const extra = images.length > 1 ? ` (PDF-Seite ${pg + 1}/${images.length})` : '';
+      doc.text(`Beleg ${i + 1} von ${posData.length}: ${p.beschreibung}${extra}`, 20, 18);
+
+      doc.setTextColor(120, 115, 110);
+      doc.text(
+        `Datum: ${p.datum ? new Date(p.datum).toLocaleDateString('de-DE') : '—'}  |  Betrag: ${p.betrag.toLocaleString('de-DE',{minimumFractionDigits:2})} €  |  ${p.kategorie}`,
+        20, 24
+      );
+
+      doc.setDrawColor(200, 195, 190);
+      doc.line(20, 27, 190, 27);
+
+      try {
+        doc.addImage(imgUrl, 'JPEG', 20, 32, 170, 220, undefined, 'MEDIUM');
+      } catch (e) {
+        doc.setFontSize(9);
+        doc.setTextColor(180, 0, 0);
+        doc.text('Beleg konnte nicht eingebettet werden.', 20, 40);
+      }
+
+      doc.setFontSize(7.5);
+      doc.setTextColor(180, 175, 170);
+      doc.text(`${receiptNo || ''}  ·  Seite ${doc.internal.getNumberOfPages()}  ·  Athanor Akademie Passau  ·  ${name}  ·  ${projekt}`, 105, 290, { align: 'center' });
+    }
+  }
+
+  return doc;
+}
+
+// ── Submit ───────────────────────────────────────────────────────────────────
+async function submitForm() {
+  if (!validate()) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Wird gesendet …';
+
+  // Show blocking progress UI (PDF rendering can take a while)
+  const overlay = document.getElementById('sendingOverlay');
+  const overlayText = document.getElementById('sendingText');
+  const overlaySub = document.getElementById('sendingSub');
+  if (overlay) overlay.style.display = 'flex';
+  if (overlayText) overlayText.textContent = 'Vorgangsnummer wird erstellt …';
+  if (overlaySub) overlaySub.textContent = 'Bitte nicht schließen.';
+
+  try {
+    const doc = await buildPDF(receiptNo);
+
+    // Build PDF as base64 (single PDF including overview + all receipts pages)
+    const dataUri = doc.output('datauristring');
+    const pdfBase64 = dataUri.split(',')[1];
+
+    // Minimal metadata for email
+    const name = document.getElementById('name').value.trim();
+    const emailSender = document.getElementById('emailSender').value.trim();
+    const projektnummer = document.getElementById('projektnummer').value.trim();
+    const projektname = document.getElementById('projektname').value.trim();
+    const projekt = `${projektnummer} – ${projektname}`;
+
+    // Ask Apps Script for the next receipt number FIRST (so the PDF and email match)
+    let receiptNo = '';
+    try {
+      const r = await fetch(SCRIPT_WEBAPP_URL + '?action=nextNo', { method: 'GET', mode: 'cors', cache: 'no-store' });
+      const t = await r.text();
+      const j = t ? JSON.parse(t) : null;
+      if (j && j.ok && j.receiptNo) receiptNo = String(j.receiptNo);
+    } catch (_) {}
+
+    if (!receiptNo) {
+      // Fallback: local temp number (still sends, but Apps Script will create the official no.)
+      const y = new Date().getFullYear();
+      receiptNo = `Auslage_${y}-TEMP`;
+    }
+
+    // Update overlay: PDF build starts now
+    if (overlayText) overlayText.textContent = `PDF wird erstellt (${receiptNo}) …`;
+    if (overlaySub) overlaySub.textContent = 'Belege werden eingebettet – das kann je nach Anzahl/Größe etwas dauern.';
+
+    // Formular-Modus (vereinheitlicht: dieses Formular ist Auslagenerstattung)
+    const art = 'auslage';
+
+    // Total (net after advance)
+    let sum = 0;
+    positions.forEach(p => {
+      const el = document.getElementById('betrag_' + p.id);
+      if (el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v > 0) sum += v;
+      }
+    });
+    const vorschuss = getVorschussBetrag();
+    const netto = sum - vorschuss;
+    const totalStr = netto.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
+
+    // Update overlay: upload starts now
+    if (overlayText) overlayText.textContent = 'PDF wird versendet …';
+    if (overlaySub) overlaySub.textContent = 'E-Mail wird über den Server verschickt. Bitte nicht schließen.';
+
+    const payload = {
+      name,
+      emailSender,
+      projekt,
+      anlass: projektnummer,
+      total: totalStr,
+      createdAt: new Date().toLocaleDateString('de-DE'),
+      dateISO: new Date().toISOString().slice(0, 10),
+      token: SCRIPT_TOKEN,
+      receiptNo,
+      pdfBase64
+    };
+
+        let res;
+    try {
+      res = await fetch(SCRIPT_WEBAPP_URL, {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    } catch (fetchErr) {
+      throw new Error('Netzwerkfehler beim Senden (fetch): ' + (fetchErr && fetchErr.message ? fetchErr.message : fetchErr));
+    }
+
+    let text = '';
+    try { text = await res.text(); } catch (_) {}
+
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch (_) {}
+
+    if (!res.ok || !json || json.ok !== true) {
+      throw new Error((json && json.error) ? json.error : ('Senden fehlgeschlagen. Antwort: ' + (text || '(leer)')));
+    }
+
+    // Optional: also save locally (comment out if you don't want downloads)
+    // const filename = `Auslagenerstattung_${name.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`;
+    // doc.save(filename);
+
+    // Hide overlay + show success
+    if (overlay) overlay.style.display = 'none';
+
+    document.getElementById('mainForm').style.display = 'none';
+    document.getElementById('stickyActions').style.display = 'none';
+    document.getElementById('successScreen').classList.add('active');
+    showToast('Versendet. (1 PDF inkl. aller Belege)', 'success');
+
+  } catch(e) {
+    console.error(e);
+    if (overlay) overlay.style.display = 'none';
+    showToast('Fehler beim Versand: ' + (e && e.message ? e.message : 'Bitte erneut versuchen.'), 'error');
+    btn.disabled = false;
+    btn.textContent = 'PDF erstellen & senden →';
+  }
+}
+
+function startOver() {
+  document.getElementById('mainForm').style.display = '';
+  document.getElementById('stickyActions').style.display = '';
+  document.getElementById('successScreen').classList.remove('active');
+  resetForm(true);
+}
+
+function resetForm(silent) {
+  if (!silent && !confirm('Formular wirklich zurücksetzen? Alle Eingaben gehen verloren.')) return;
+  ['name','strasse','plz','ort','projektnummer','projektname','iban','bic','kontoinhaber','vorschussBetrag','emailSender'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const landEl = document.getElementById('land');
+  if (landEl) landEl.value = 'Deutschland';
+
+  const vorschEl = document.getElementById('vorschuss');
+  if (vorschEl) vorschEl.value = 'nein';
+  const vbField = document.getElementById('vorschussBetragField');
+  if (vbField) vbField.style.display = 'none';
+
+  ['confirmCorrect','confirmOriginals','confirmQuality'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+
+  clearSignature();
+
+  positions = [];
+  posId = 0;
+  addPosition();
+  clearErrors();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Unterschrift (Canvas) ─────────────────────────────────────────────────
+let sigHasInk = false;
+let sigDrawing = false;
+let sigLast = { x: 0, y: 0 };
+
+function resizeSigPad() {
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(1, Math.floor(rect.width * dpr));
+  const h = Math.max(1, Math.floor(rect.height * dpr));
+
+  // Preserve drawing
+  const tmp = document.createElement('canvas');
+  tmp.width = canvas.width;
+  tmp.height = canvas.height;
+  tmp.getContext('2d').drawImage(canvas, 0, 0);
+
+  canvas.width = w;
+  canvas.height = h;
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = '#111';
+
+  // redraw preserved content
+  ctx.drawImage(tmp, 0, 0, tmp.width, tmp.height, 0, 0, rect.width, rect.height);
+}
+
+function getSigPoint(e) {
+  const canvas = document.getElementById('sigPad');
+  const rect = canvas.getBoundingClientRect();
+  const t = e.touches && e.touches[0] ? e.touches[0] : e;
+  return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+}
+
+function sigStart(e) {
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  sigDrawing = true;
+  canvas.classList.remove('err-pad');
+  const p = getSigPoint(e);
+  sigLast = p;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  e.preventDefault();
+}
+
+function sigMove(e) {
+  if (!sigDrawing) return;
+  const canvas = document.getElementById('sigPad');
+  const ctx = canvas.getContext('2d');
+  const p = getSigPoint(e);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  sigHasInk = true;
+  sigLast = p;
+  e.preventDefault();
+}
+
+function sigEnd(e) {
+  sigDrawing = false;
+  e && e.preventDefault && e.preventDefault();
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  // also clear full backing store
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sigHasInk = false;
+  canvas.classList.remove('err-pad');
+}
+
+function hasSignature() {
+  return !!sigHasInk;
+}
+
+function getSignatureDataURL() {
+  if (!hasSignature()) return null;
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return null;
+
+  // create cropped image for cleaner PDF embedding
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  let minX = w, minY = h, maxX = 0, maxY = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const a = data[i + 3];
+      // any non-transparent pixel
+      if (a > 0) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        // treat near-white as background
+        if (r > 245 && g > 245 && b > 245) continue;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  if (minX > maxX || minY > maxY) return canvas.toDataURL('image/png');
+
+  const pad = Math.floor(Math.min(w, h) * 0.03);
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(w - 1, maxX + pad);
+  maxY = Math.min(h - 1, maxY + pad);
+
+  const cw = maxX - minX + 1;
+  const ch = maxY - minY + 1;
+
+  const out = document.createElement('canvas');
+  out.width = cw;
+  out.height = ch;
+  const octx = out.getContext('2d');
+  octx.fillStyle = '#ffffff';
+  octx.fillRect(0, 0, cw, ch);
+  octx.drawImage(canvas, minX, minY, cw, ch, 0, 0, cw, ch);
+
+  return out.toDataURL('image/png');
+}
+
+(function initSignaturePad(){
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  resizeSigPad();
+
+  // Pointer events
+  canvas.addEventListener('pointerdown', sigStart);
+  canvas.addEventListener('pointermove', sigMove);
+  window.addEventListener('pointerup', sigEnd);
+  canvas.addEventListener('pointerleave', sigEnd);
+
+  window.addEventListener('resize', () => {
+    // prevent expensive work during scroll
+    clearTimeout(window._sigResize);
+    window._sigResize = setTimeout(resizeSigPad, 150);
+  });
+})();
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = 'toast'; }, 4500);
+}
+</script>
+</body>
+</html>
