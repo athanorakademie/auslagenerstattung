@@ -1,3 +1,5 @@
+
+
 ```html
 <!DOCTYPE html>
 <html lang="de">
@@ -66,43 +68,6 @@ header {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.logo-wrap {
-  flex-shrink: 0;
-  width: 190px;
-  height: 64px;
-  border-radius: 6px;
-  padding: 6px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: #ffffff;
-  overflow: visible;
-}
-
-.logo-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: left center;
-  display: block;
-  transform: translateX(-10px);
-}
-
-.header-text h1 {
-  font-family: var(--font);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.2;
-}
-
-.header-text p {
-  font-size: 0.75rem;
-  color: var(--neon-magenta);
-  font-weight: 500;
-  margin-top: 0.1rem;
 }
 
 /* ── Header brand (no logo) ── */
@@ -776,7 +741,7 @@ select {
 <body>
 
 <header>
-  <div class="header-text header-text--stack">
+  <div class="header-text--stack">
     <div class="brand-title">Athanor Akademie Passau</div>
     <div class="page-title">Auslagenerstattung</div>
   </div>
@@ -934,7 +899,7 @@ select {
     </div>
 
     <p class="check-note">
-      Nach dem Absenden wird das PDF automatisch an <strong>invoice@athanor.de</strong> gesendet (CC an Ihre E-Mail-Adresse). Bitte geben Sie die Originalbelege zusätzlich in der Verwaltung ab.
+      Nach dem Absenden erhalten Sie das PDF an <strong>Ihre E-Mail-Adresse</strong>. Die Buchhaltung wird per <strong>BCC</strong> benachrichtigt. Bitte geben Sie die Originalbelege zusätzlich in der Verwaltung ab.
     </p>
   </div>
 
@@ -967,16 +932,6 @@ select {
   </div>
 </div>
 
-  img.onerror = function() {
-    img.style.display = 'none';
-    img.parentElement.innerHTML = '<span style="font-weight:700;font-size:0.65rem;color:#222;line-height:1;text-align:center;">Athanor<br>Akademie</span>';
-  };
-
-  // Embedded logo (data URI) – works on localhost/webspace without any extra files
-  img.src = '[base64 data URI removed, 8646 chars]';
-})();
-</script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -998,15 +953,11 @@ if (window.pdfjsLib) {
 }
 
 async function pdfFileToJpegDataUrl(file, pageNumber = 1, maxWidth = 1700) {
-  // Render a single PDF page to a JPEG data URL (used to embed PDF receipts visibly).
-  // Note: we intentionally keep this async+canvas based so it works offline/client-side.
-
   if (!window.pdfjsLib) throw new Error('PDF-Renderer nicht geladen.');
   const ab = await file.arrayBuffer();
   const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
   const page = await pdf.getPage(pageNumber);
 
-  // Render scale based on desired max width
   const viewport1 = page.getViewport({ scale: 1 });
   const scale = Math.min(3, Math.max(1, maxWidth / viewport1.width));
   const viewport = page.getViewport({ scale });
@@ -1017,8 +968,6 @@ async function pdfFileToJpegDataUrl(file, pageNumber = 1, maxWidth = 1700) {
   canvas.height = Math.floor(viewport.height);
 
   await page.render({ canvasContext: ctx, viewport }).promise;
-
-  // JPEG compress to keep size reasonable
   return canvas.toDataURL('image/jpeg', 0.86);
 }
 
@@ -1245,8 +1194,6 @@ function validate() {
     if (!el.value.trim()) { el.classList.add('err'); errors.push(f.label + ' fehlt.'); }
   });
 
-
-  // BIC: Pflicht wenn IBAN nicht mit DE beginnt
   const ibanVal = document.getElementById('iban').value.replace(/\s/g, '').slice(0,22);
   const isDeIban = ibanVal.toUpperCase().startsWith('DE');
   const bicVal = document.getElementById('bic').value.trim();
@@ -1328,8 +1275,6 @@ async function buildPDF(receiptNo) {
   const projektname = document.getElementById('projektname').value.trim();
   const projekt = `${projektnummer} – ${projektname}`;
 
-  // Formular-Modus (vereinheitlicht: dieses Formular ist Auslagenerstattung)
-  const art = 'auslage';
   const anlass = projektnummer;
 
   const iban = document.getElementById('iban').value.trim();
@@ -1345,8 +1290,6 @@ async function buildPDF(receiptNo) {
     const file = p.file;
     let fileDataURL = p.fileDataURL;
 
-    // If receipt is a PDF, render ALL pages to JPEG so they are visible in the final PDF
-    // (each rendered page becomes its own appended page in the output PDF).
     let receiptImages = null;
     if (file && file.type === 'application/pdf') {
       try {
@@ -1355,10 +1298,9 @@ async function buildPDF(receiptNo) {
 
         const ab = await file.arrayBuffer();
         const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
-        const numPages = Math.min(pdf.numPages || 1, 20); // safety cap
+        const numPages = Math.min(pdf.numPages || 1, 20);
 
         for (let pg = 1; pg <= numPages; pg++) {
-          // Slightly smaller maxWidth to keep memory + payload reasonable
           const img = await (async () => {
             const page = await pdf.getPage(pg);
             const viewport1 = page.getViewport({ scale: 1 });
@@ -1377,11 +1319,9 @@ async function buildPDF(receiptNo) {
           receiptImages.push(img);
         }
 
-        // Use first page as the legacy single-image field (backwards compatible)
         fileDataURL = receiptImages[0] || null;
 
       } catch (e) {
-        // Keep null/old value; we'll show a warning page
         receiptImages = null;
         fileDataURL = null;
       }
@@ -1402,8 +1342,6 @@ async function buildPDF(receiptNo) {
   const vorschussAbzug = vorschuss === 'ja' ? vorschussBetrag : 0;
   const total = totalBrutto - vorschussAbzug;
 
-  // ── Seite 1: Abrechnung ──
-  // Header-Balken
   doc.setFillColor(26, 26, 26);
   doc.rect(0, 0, 210, 14, 'F');
   doc.setFillColor(255, 45, 120);
@@ -1418,7 +1356,6 @@ async function buildPDF(receiptNo) {
   doc.setTextColor(255, 45, 120);
   doc.text('Auslagenerstattung', 190, 9, { align: 'right' });
 
-  // Akademie-Anschrift
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(220, 220, 220);
@@ -1441,7 +1378,6 @@ async function buildPDF(receiptNo) {
   doc.line(20, y, 190, y);
   y += 8;
 
-  // Persönliche Angaben
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
@@ -1470,7 +1406,6 @@ async function buildPDF(receiptNo) {
     doc.text(k + ':', 20, y);
     doc.setTextColor(30, 30, 30);
 
-    // Value column: allow multi-line (e.g., address split into multiple lines)
     const value = String(v ?? '');
     const lines = value.split('\n');
     lines.forEach((line, idx) => {
@@ -1487,7 +1422,6 @@ async function buildPDF(receiptNo) {
   doc.line(20, y, 190, y);
   y += 8;
 
-  // Positionen-Tabelle
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
@@ -1527,7 +1461,6 @@ async function buildPDF(receiptNo) {
 
   y = doc.lastAutoTable.finalY + 10;
 
-  // GoBD-Hinweis
   doc.setFillColor(255, 250, 225);
   doc.setDrawColor(200, 175, 60);
   doc.setLineWidth(0.4);
@@ -1540,7 +1473,6 @@ async function buildPDF(receiptNo) {
   doc.text('Die Originalbelege sind zusätzlich in der Verwaltung der Athanor Akademie Passau abzugeben (GoBD-konform).', 24, y + 10);
   y += 20;
 
-  // Bestätigung
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(30, 30, 30);
@@ -1556,10 +1488,7 @@ async function buildPDF(receiptNo) {
   doc.text(confirmText, 20, y);
   y += confirmText.length * 5 + 9;
 
-  // Unterschrift einbetten
   const sigDataUrl = getSignatureDataURL();
-
-  // Mehr vertikaler Abstand, damit die Unterschrift nichts überdeckt
   y += 4;
 
   doc.setDrawColor(150, 145, 140);
@@ -1568,11 +1497,8 @@ async function buildPDF(receiptNo) {
 
   if (sigDataUrl) {
     try {
-      // Bild über die Linie platzieren (mit mehr Abstand nach oben)
       doc.addImage(sigDataUrl, 'PNG', 20, y - 16, 72, 14);
-    } catch(e) {
-      // Falls Einbetten fehlschlägt: Linie bleibt
-    }
+    } catch(e) {}
   }
 
   y += 6;
@@ -1581,22 +1507,18 @@ async function buildPDF(receiptNo) {
   doc.setTextColor(130, 125, 120);
   doc.text('Datum, Unterschrift (Antragsteller/in)', 20, y);
 
-  // Footer Seite 1
   doc.setFontSize(7.5);
   doc.setTextColor(180, 175, 170);
   doc.text(`${receiptNo}  ·  Athanor Akademie Passau  ·  invoice@athanor.de  ·  Erstellt: ${heute}`, 105, 290, { align: 'center' });
 
-  // ── Folgeseiten: Belege ──
   for (let i = 0; i < posData.length; i++) {
     const p = posData[i];
 
-    // Build receipt pages list (images). For PDFs we render multiple pages.
     const images = Array.isArray(p.receiptImages) && p.receiptImages.length
       ? p.receiptImages
       : (p.fileDataURL ? [p.fileDataURL] : []);
 
     if (!images.length) {
-      // Still add a warning page if a receipt exists but couldn't be rendered.
       if (p.file) {
         doc.addPage();
 
@@ -1683,7 +1605,6 @@ async function submitForm() {
   btn.disabled = true;
   btn.textContent = 'Wird gesendet …';
 
-  // Show blocking progress UI (PDF rendering can take a while)
   const overlay = document.getElementById('sendingOverlay');
   const overlayText = document.getElementById('sendingText');
   const overlaySub = document.getElementById('sendingSub');
@@ -1692,42 +1613,40 @@ async function submitForm() {
   if (overlaySub) overlaySub.textContent = 'Bitte nicht schließen.';
 
   try {
-    const doc = await buildPDF(receiptNo);
-
-    // Build PDF as base64 (single PDF including overview + all receipts pages)
-    const dataUri = doc.output('datauristring');
-    const pdfBase64 = dataUri.split(',')[1];
-
-    // Minimal metadata for email
-    const name = document.getElementById('name').value.trim();
-    const emailSender = document.getElementById('emailSender').value.trim();
-    const projektnummer = document.getElementById('projektnummer').value.trim();
-    const projektname = document.getElementById('projektname').value.trim();
-    const projekt = `${projektnummer} – ${projektname}`;
-
-    // Ask Apps Script for the next receipt number FIRST (so the PDF and email match)
+    // 1) Vorgangsnummer zuerst holen (damit PDF + Mail identisch sind)
     let receiptNo = '';
     try {
-      const r = await fetch(SCRIPT_WEBAPP_URL + '?action=nextNo', { method: 'GET', mode: 'cors', cache: 'no-store' });
+      const r = await fetch(SCRIPT_WEBAPP_URL + '?action=nextNo', {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store'
+      });
       const t = await r.text();
       const j = t ? JSON.parse(t) : null;
       if (j && j.ok && j.receiptNo) receiptNo = String(j.receiptNo);
     } catch (_) {}
 
     if (!receiptNo) {
-      // Fallback: local temp number (still sends, but Apps Script will create the official no.)
       const y = new Date().getFullYear();
       receiptNo = `Auslage_${y}-TEMP`;
     }
 
-    // Update overlay: PDF build starts now
+    // 2) PDF bauen
     if (overlayText) overlayText.textContent = `PDF wird erstellt (${receiptNo}) …`;
     if (overlaySub) overlaySub.textContent = 'Belege werden eingebettet – das kann je nach Anzahl/Größe etwas dauern.';
 
-    // Formular-Modus (vereinheitlicht: dieses Formular ist Auslagenerstattung)
-    const art = 'auslage';
+    const doc = await buildPDF(receiptNo);
 
-    // Total (net after advance)
+    const dataUri = doc.output('datauristring');
+    const pdfBase64 = dataUri.split(',')[1];
+
+    // 3) Payload vorbereiten
+    const name = document.getElementById('name').value.trim();
+    const emailSender = document.getElementById('emailSender').value.trim();
+    const projektnummer = document.getElementById('projektnummer').value.trim();
+    const projektname = document.getElementById('projektname').value.trim();
+    const projekt = `${projektnummer} – ${projektname}`;
+
     let sum = 0;
     positions.forEach(p => {
       const el = document.getElementById('betrag_' + p.id);
@@ -1739,10 +1658,6 @@ async function submitForm() {
     const vorschuss = getVorschussBetrag();
     const netto = sum - vorschuss;
     const totalStr = netto.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
-
-    // Update overlay: upload starts now
-    if (overlayText) overlayText.textContent = 'PDF wird versendet …';
-    if (overlaySub) overlaySub.textContent = 'E-Mail wird über den Server verschickt. Bitte nicht schließen.';
 
     const payload = {
       name,
@@ -1757,7 +1672,11 @@ async function submitForm() {
       pdfBase64
     };
 
-        let res;
+    // 4) Versand
+    if (overlayText) overlayText.textContent = 'PDF wird versendet …';
+    if (overlaySub) overlaySub.textContent = 'E-Mail wird über den Server verschickt. Bitte nicht schließen.';
+
+    let res;
     try {
       res = await fetch(SCRIPT_WEBAPP_URL, {
         method: 'POST',
@@ -1780,7 +1699,6 @@ async function submitForm() {
       throw new Error((json && json.error) ? json.error : ('Senden fehlgeschlagen. Antwort: ' + (text || '(leer)')));
     }
 
-    // Hide overlay + show success
     if (overlay) overlay.style.display = 'none';
 
     document.getElementById('mainForm').style.display = 'none';
@@ -1845,7 +1763,6 @@ function resizeSigPad() {
   const w = Math.max(1, Math.floor(rect.width * dpr));
   const h = Math.max(1, Math.floor(rect.height * dpr));
 
-  // Preserve drawing
   const tmp = document.createElement('canvas');
   tmp.width = canvas.width;
   tmp.height = canvas.height;
@@ -1861,7 +1778,6 @@ function resizeSigPad() {
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = '#111';
 
-  // redraw preserved content
   ctx.drawImage(tmp, 0, 0, tmp.width, tmp.height, 0, 0, rect.width, rect.height);
 }
 
@@ -1908,7 +1824,6 @@ function clearSignature() {
   const rect = canvas.getBoundingClientRect();
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, rect.width, rect.height);
-  // also clear full backing store
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   sigHasInk = false;
   canvas.classList.remove('err-pad');
@@ -1923,7 +1838,6 @@ function getSignatureDataURL() {
   const canvas = document.getElementById('sigPad');
   if (!canvas) return null;
 
-  // create cropped image for cleaner PDF embedding
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
@@ -1935,10 +1849,8 @@ function getSignatureDataURL() {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
       const a = data[i + 3];
-      // any non-transparent pixel
       if (a > 0) {
         const r = data[i], g = data[i + 1], b = data[i + 2];
-        // treat near-white as background
         if (r > 245 && g > 245 && b > 245) continue;
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -1975,14 +1887,12 @@ function getSignatureDataURL() {
   if (!canvas) return;
   resizeSigPad();
 
-  // Pointer events
   canvas.addEventListener('pointerdown', sigStart);
   canvas.addEventListener('pointermove', sigMove);
   window.addEventListener('pointerup', sigEnd);
   canvas.addEventListener('pointerleave', sigEnd);
 
   window.addEventListener('resize', () => {
-    // prevent expensive work during scroll
     clearTimeout(window._sigResize);
     window._sigResize = setTimeout(resizeSigPad, 150);
   });
