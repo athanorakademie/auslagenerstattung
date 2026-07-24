@@ -1091,10 +1091,9 @@ function renderPositions() {
 
       <div class="pos-upload">
         <span class="pos-upload-label">Beleg <span class="req">*</span></span>
-        <div class="upload-zone ${fn ? 'has-file' : ''}" id="zone_${p.id}"
-          onclick="document.getElementById('file_${p.id}').click()">
+        <div class="upload-zone ${fn ? 'has-file' : ''}" id="zone_${p.id}">
           <input type="file" id="file_${p.id}"
-            accept="image/jpeg,image/jpg,application/pdf"
+            accept="image/jpeg,image/jpg,image/png,application/pdf"
             onchange="handleFile(${p.id}, this)" />
           <span class="uz-text" id="ztext_${p.id}">
             ${fn ? '✓ ' + fn : '📎 JPEG oder PDF auswählen'}
@@ -1113,9 +1112,9 @@ function renderPositions() {
 function handleFile(pid, input) {
   const file = input.files[0];
   if (!file) return;
-  const allowed = ['image/jpeg', 'image/jpg', 'application/pdf'];
+  const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   if (!allowed.includes(file.type)) {
-    showToast('Nur JPEG-Bilder und PDF-Dateien sind zulässig.', 'error');
+    showToast('JPEG, PNG oder PDF auswählen.', 'error');
     input.value = '';
     return;
   }
