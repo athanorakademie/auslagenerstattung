@@ -2189,6 +2189,8 @@ async function buildPDF(receiptNo) {
   }
   var payoutDate = addBusinessDays_(new Date(), 3);
   var payoutStr = payoutDate.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+  // Für E-Mail Payload wiederverwenden
+  try { doc.__payoutStr = payoutStr; } catch (_) {}
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(110, 110, 110);
@@ -2474,6 +2476,9 @@ async function submitForm() {
     if (overlayText) overlayText.textContent = `PDF wird erstellt (${receiptNo}) …`;
     if (overlaySub) overlaySub.textContent = 'Belege werden eingebettet – das kann je nach Anzahl/Größe etwas dauern.';
     const doc = await buildPDF(receiptNo);
+
+    // payoutDate wird im PDF-Builder berechnet und als doc.__payoutStr abgelegt
+    const payoutStr = (doc && doc.__payoutStr) ? String(doc.__payoutStr) : '';
 
     const dataUri = doc.output('datauristring');
     const pdfBase64 = dataUri.split(',')[1];
