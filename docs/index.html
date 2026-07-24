@@ -802,8 +802,8 @@ select {
 
     <div class="field">
       <label>IBAN <span class="req">*</span></label>
-      <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00" maxlength="22" autocomplete="off"
-        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,22).replace(/(.{4})/g,'$1 ').trim()" />
+      <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00" maxlength="27" autocomplete="off"
+    oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,22).replace(/(.{4})/g,'$1 ').trim()" />
       <span class="hint">Nur deine eigene IBAN angeben (§&nbsp;670 BGB – Aufwendungsersatz).</span>
     </div>
 
