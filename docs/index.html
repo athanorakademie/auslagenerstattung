@@ -1244,11 +1244,24 @@ function renderAddrSuggestions_(results) {
 
     // Display: split into a clean "title" and a muted meta line
     const dn = String(r.display_name || '').trim();
-    const parts = dn.split(',').map(s => s.trim()).filter(Boolean);
-    const title = parts.slice(0, 2).join(', ');
-    const meta = parts.slice(2).join(', ');
 
-    btn.innerHTML = `<div class="s-title">${escapeHtml_(title || dn)}</div>${meta ? `<div class="s-meta">${escapeHtml_(meta)}</div>` : ''}`;
+    // Wir zeigen bewusst nur: Straße + Hausnr + (optional Stadtteil) + PLZ + Ort
+    const a = r.address || {};
+    const street = (a.road || a.pedestrian || a.footway || a.cycleway || a.path || '').trim();
+    const house = String(a.house_number || '').trim();
+    const postcode = String(a.postcode || '').trim();
+    const city = String(a.city || a.town || a.village || a.municipality || '').trim();
+    const district = String(a.suburb || a.city_district || a.neighbourhood || '').trim();
+
+    const line1 = [street, house].filter(Boolean).join(' ').trim() || dn;
+    const line2Parts = [];
+    if (district && district.toLowerCase() !== city.toLowerCase()) line2Parts.push(district);
+    const plzOrt = [postcode, city].filter(Boolean).join(' ').trim();
+    if (plzOrt) line2Parts.push(plzOrt);
+
+    const line2 = line2Parts.join(' · ');
+
+    btn.innerHTML = `<div class="s-title">${escapeHtml_(line1)}</div>${line2 ? `<div class="s-meta">${escapeHtml_(line2)}</div>` : ''}`;
 
     btn.addEventListener('click', () => {
       addrSelected = true;
