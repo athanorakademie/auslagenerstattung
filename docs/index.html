@@ -1778,20 +1778,26 @@ async function buildPDF(receiptNo) {
   doc.setFillColor(232, 0, 90); // Athanor Magenta
   doc.rect(0, 13, 210, 1.5, 'F');
 
+  // Marke/Absender links stärker gewichten (mehr Präsenz)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   doc.setTextColor(26, 26, 26);
-  doc.text('Athanor Akademie Passau', 20, 9);
+  doc.text('Athanor Akademie Passau', 20, 8.6);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(232, 0, 90);
-  doc.text('Auslagenerstattung', 190, 9, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(8.6);
   doc.setTextColor(110, 110, 110);
-  doc.text('Schulbergstr. 30, 94034 Passau · buchhaltung@athanor.de', 20, 12.2);
+  doc.text('Schulbergstraße 30 · 94034 Passau', 20, 12.2);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  doc.setTextColor(232, 0, 90);
+  doc.text('Auslagenerstattung', 190, 8.6, { align: 'right' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.8);
+  doc.setTextColor(110, 110, 110);
+  doc.text('buchhaltung@athanor.de · www.athanor.de', 190, 12.2, { align: 'right' });
 
   let y = 24;
 
@@ -2017,14 +2023,15 @@ async function buildPDF(receiptNo) {
     for (let pg = 0; pg < images.length; pg++) {
       const imgUrl = images[pg];
       doc.addPage();
-      doc.setFillColor(26, 26, 26);
+      // Header im Magenta-Konzept (statt schwarzem Balken)
+      doc.setFillColor(250, 244, 247);
       doc.rect(0, 0, 210, 10, 'F');
-      doc.setFillColor(255, 45, 120);
+      doc.setFillColor(232, 0, 90);
       doc.rect(0, 9.5, 210, 1, 'F');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
-      doc.setTextColor(240, 240, 240);
+      doc.setTextColor(26, 26, 26);
       doc.text('Athanor Akademie Passau · Beleg zur Auslagenerstattung', 20, 7);
 
       doc.setFont('helvetica', 'normal');
@@ -2141,6 +2148,7 @@ async function submitForm() {
       dateISO: new Date().toISOString().slice(0, 10),
       token: SCRIPT_TOKEN,
       receiptNo,
+      payoutDate: payoutStr,
       pdfBase64
     };
 
