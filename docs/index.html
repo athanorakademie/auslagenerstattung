@@ -472,6 +472,100 @@ select {
 
 .add-btn:active { background: var(--accent-dim); }
 
+/* ── Bank picker / Autocomplete ── */
+.bank-picker {
+  position: relative;
+}
+
+.bank-picker input[type="text"] {
+  padding-right: 3rem; /* Platz für Clear-Button */
+}
+
+.bank-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(232,0,90,0.18);
+  background: rgba(232,0,90,0.06);
+  color: var(--neon-magenta);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bank-clear:active {
+  background: rgba(232,0,90,0.12);
+}
+
+.bank-suggestions {
+  position: absolute;
+  top: calc(var(--touch) + 8px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1.5px solid rgba(232,0,90,0.22);
+  border-radius: 14px;
+  padding: 0.35rem;
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.10),
+    0 2px 0 rgba(232,0,90,0.08) inset;
+  z-index: 80;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.bank-suggestion {
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  color: var(--text);
+  border-radius: 12px;
+  cursor: pointer;
+  line-height: 1.25;
+}
+
+.bank-suggestion:hover,
+.bank-suggestion:focus {
+  outline: none;
+  background: rgba(232,0,90,0.08);
+}
+
+.bank-inline-actions { margin-top: 0.45rem; }
+
+.bank-manual {
+  background: transparent;
+  border: 1.5px dashed rgba(232,0,90,0.55);
+  color: var(--neon-magenta);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 0.75rem;
+  min-height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bank-manual:active { background: rgba(232,0,90,0.06); }
+
+.bank-note {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--gray-helmet);
+  line-height: 1.4;
+}
+
 /* ── Checkboxes ── */
 .check-row {
   display: flex;
@@ -1063,6 +1157,15 @@ let addrAbort = null;
 let addrDebounce = null;
 let addrCache = new Map(); // key=query -> results
 
+function escapeHtml_(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function showAddrError_(show) {
   if (!addrErrorEl) return;
   addrErrorEl.style.display = show ? '' : 'none';
@@ -1138,11 +1241,19 @@ function renderAddrSuggestions_(results) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bank-suggestion';
-    btn.textContent = r.display_name;
+
+    // Display: split into a clean "title" and a muted meta line
+    const dn = String(r.display_name || '').trim();
+    const parts = dn.split(',').map(s => s.trim()).filter(Boolean);
+    const title = parts.slice(0, 2).join(', ');
+    const meta = parts.slice(2).join(', ');
+
+    btn.innerHTML = `<div class="s-title">${escapeHtml_(title || dn)}</div>${meta ? `<div class="s-meta">${escapeHtml_(meta)}</div>` : ''}`;
+
     btn.addEventListener('click', () => {
       addrSelected = true;
       showAddrError_(false);
-      setAddrValue_(r.display_name);
+      setAddrValue_(dn);
       clearAddrSuggestions_();
       applyAddressToFields_(parseNominatimAddress_(r.address));
       // Manuelle Felder bleiben standardmäßig zu (nur auf Button-Klick aufmachen)
@@ -1208,7 +1319,20 @@ function clearAddrAll_() {
   setAddrValue_('');
   clearAddrSuggestions_();
   showAddrError_(false);
-  // Wir lassen die manuellen Felder zu, falls sie gerade offen sind, ändern aber nichts.
+
+  // Wenn keine manuelle Eingabe offen ist, leeren wir auch die versteckten Felder,
+  // damit es keine „Geisteradresse“ gibt.
+  const manualVisible = addrManualFields && addrManualFields.style.display !== 'none';
+  if (!manualVisible) {
+    const s = document.getElementById('strasse');
+    const p = document.getElementById('plz');
+    const o = document.getElementById('ort');
+    const l = document.getElementById('land');
+    if (s) s.value = '';
+    if (p) p.value = '';
+    if (o) o.value = '';
+    if (l) l.value = 'Deutschland';
+  }
 }
 
 if (addrSearchEl) {
