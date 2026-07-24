@@ -847,32 +847,49 @@ select {
     </div>
 
     <div class="field">
-      <label>Straße &amp; Hausnummer <span class="req">*</span></label>
-      <input type="text" id="strasse" placeholder="Straße Hausnummer" autocomplete="address-line1" />
+      <label>Adresse suchen <span class="req">*</span></label>
+      <div class="bank-picker" id="addrPicker">
+        <input type="text" id="addrSearch" placeholder="z.B. Schulbergstraße 30, Passau" autocomplete="street-address" />
+        <button type="button" class="bank-clear" id="addrClear" aria-label="Auswahl löschen" title="Auswahl löschen" style="display:none;">✕</button>
+        <div class="bank-suggestions" id="addrSuggestions" role="listbox" aria-label="Adressvorschläge" style="display:none;"></div>
+      </div>
+      <div class="bank-inline-actions">
+        <button type="button" class="bank-manual" id="addrManualBtn">Adresse manuell eingeben</button>
+      </div>
+      <div class="bank-note" id="addrNote">Tipp: Adresse auswählen → Straße, PLZ, Ort und Land werden automatisch übernommen.</div>
+      <div class="hint" id="addrPrivacyHint">Bei der Adresssuche werden Eingaben an OpenStreetMap/Nominatim gesendet.</div>
+      <div class="hint" id="addrError" style="display:none;color:var(--danger);font-style:normal;margin-top:0.4rem;">Bitte Adresse auswählen oder manuell eingeben.</div>
     </div>
 
-    <div class="field">
-      <label>Postleitzahl <span class="req">*</span></label>
-      <input type="text" id="plz" placeholder="z.B. 94034" inputmode="numeric" autocomplete="postal-code" maxlength="10"
-        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
-    </div>
+    <div id="addrManualFields" style="display:none;">
+      <div class="field">
+        <label>Straße &amp; Hausnummer <span class="req">*</span></label>
+        <input type="text" id="strasse" placeholder="Straße Hausnummer" autocomplete="address-line1" />
+      </div>
 
-    <div class="field">
-      <label>Ort <span class="req">*</span></label>
-      <input type="text" id="ort" placeholder="z.B. Passau" autocomplete="address-level2" />
-    </div>
+      <div class="field">
+        <label>Postleitzahl <span class="req">*</span></label>
+        <input type="text" id="plz" placeholder="z.B. 94034" inputmode="numeric" autocomplete="postal-code" maxlength="10"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
+      </div>
 
-    <div class="field">
-      <label>Land <span class="req">*</span></label>
-      <select id="land" autocomplete="country-name">
-        <option value="">Bitte wählen …</option>
-        <option value="Deutschland" selected>Deutschland</option>
-        <option value="Österreich">Österreich</option>
-        <option value="Schweiz">Schweiz</option>
-        <option value="Frankreich">Frankreich</option>
-        <option value="Italien">Italien</option>
-        <option value="Sonstiges">Sonstiges</option>
-      </select>
+      <div class="field">
+        <label>Ort <span class="req">*</span></label>
+        <input type="text" id="ort" placeholder="z.B. Passau" autocomplete="address-level2" />
+      </div>
+
+      <div class="field">
+        <label>Land <span class="req">*</span></label>
+        <select id="land" autocomplete="country-name">
+          <option value="">Bitte wählen …</option>
+          <option value="Deutschland" selected>Deutschland</option>
+          <option value="Österreich">Österreich</option>
+          <option value="Schweiz">Schweiz</option>
+          <option value="Frankreich">Frankreich</option>
+          <option value="Italien">Italien</option>
+          <option value="Sonstiges">Sonstiges</option>
+        </select>
+      </div>
     </div>
 
     <div class="field">
@@ -1031,6 +1048,199 @@ select {
 
 <script>
 const { jsPDF } = window.jspdf;
+
+// ── Adresse (Autocomplete via OSM Nominatim) ─────────────────────────────────
+const addrSearchEl = document.getElementById('addrSearch');
+const addrPickerEl = document.getElementById('addrPicker');
+const addrSuggestionsEl = document.getElementById('addrSuggestions');
+const addrClearBtn = document.getElementById('addrClear');
+const addrManualBtn = document.getElementById('addrManualBtn');
+const addrManualFields = document.getElementById('addrManualFields');
+const addrErrorEl = document.getElementById('addrError');
+
+let addrSelected = false;
+let addrAbort = null;
+let addrDebounce = null;
+let addrCache = new Map(); // key=query -> results
+
+function showAddrError_(show) {
+  if (!addrErrorEl) return;
+  addrErrorEl.style.display = show ? '' : 'none';
+}
+
+function setManualAddressVisible_(visible) {
+  if (!addrManualFields) return;
+  addrManualFields.style.display = visible ? '' : 'none';
+}
+
+function clearAddrSuggestions_() {
+  if (!addrSuggestionsEl) return;
+  addrSuggestionsEl.innerHTML = '';
+  addrSuggestionsEl.style.display = 'none';
+}
+
+function setAddrClearVisible_(show) {
+  if (!addrClearBtn) return;
+  addrClearBtn.style.display = show ? '' : 'none';
+}
+
+function setAddrValue_(v) {
+  if (!addrSearchEl) return;
+  addrSearchEl.value = v || '';
+  setAddrClearVisible_(!!(v && String(v).trim()));
+}
+
+function parseNominatimAddress_(a) {
+  if (!a) return { strasse: '', plz: '', ort: '', land: '' };
+  const street = a.road || a.pedestrian || a.footway || a.cycleway || a.path || '';
+  const house = a.house_number || '';
+  const postcode = a.postcode || '';
+  const city = a.city || a.town || a.village || a.municipality || a.county || '';
+  const country = a.country || '';
+  return {
+    strasse: [street, house].filter(Boolean).join(' ').trim(),
+    plz: String(postcode || '').trim(),
+    ort: String(city || '').trim(),
+    land: String(country || '').trim(),
+  };
+}
+
+function applyAddressToFields_(parts) {
+  const s = document.getElementById('strasse');
+  const p = document.getElementById('plz');
+  const o = document.getElementById('ort');
+  const l = document.getElementById('land');
+  if (s) s.value = parts.strasse || '';
+  if (p) p.value = (parts.plz || '').replace(/[^0-9]/g, '').slice(0, 10);
+  if (o) o.value = parts.ort || '';
+
+  // Land: wir mappen grob auf eure Select-Werte
+  if (l) {
+    const v = (parts.land || '').toLowerCase();
+    if (v.includes('deutsch')) l.value = 'Deutschland';
+    else if (v.includes('öster') || v.includes('austria')) l.value = 'Österreich';
+    else if (v.includes('schweiz') || v.includes('switzerland')) l.value = 'Schweiz';
+    else if (v.includes('france') || v.includes('frankreich')) l.value = 'Frankreich';
+    else if (v.includes('italy') || v.includes('italien')) l.value = 'Italien';
+    else if (parts.land) l.value = 'Sonstiges';
+  }
+}
+
+function renderAddrSuggestions_(results) {
+  if (!addrSuggestionsEl) return;
+  addrSuggestionsEl.innerHTML = '';
+  if (!results || !results.length) {
+    addrSuggestionsEl.style.display = 'none';
+    return;
+  }
+
+  results.slice(0, 8).forEach(r => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bank-suggestion';
+    btn.textContent = r.display_name;
+    btn.addEventListener('click', () => {
+      addrSelected = true;
+      showAddrError_(false);
+      setAddrValue_(r.display_name);
+      clearAddrSuggestions_();
+      applyAddressToFields_(parseNominatimAddress_(r.address));
+      // Manuelle Felder bleiben standardmäßig zu (nur auf Button-Klick aufmachen)
+    });
+    addrSuggestionsEl.appendChild(btn);
+  });
+
+  addrSuggestionsEl.style.display = '';
+}
+
+async function fetchAddrSuggestions_(q) {
+  const query = String(q || '').trim();
+  if (query.length < 4) return [];
+
+  const key = query.toLowerCase();
+  if (addrCache.has(key)) return addrCache.get(key);
+
+  // Abort previous
+  try { if (addrAbort) addrAbort.abort(); } catch (_) {}
+  addrAbort = new AbortController();
+
+  // DE/AT Fokus
+  const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&countrycodes=de,at&q=' + encodeURIComponent(query);
+  const res = await fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    cache: 'no-store',
+    headers: {
+      // Nominatim bittet um identifying UA/Referer; im Browser ist das eingeschränkt.
+      'Accept': 'application/json'
+    },
+    signal: addrAbort.signal
+  });
+
+  if (!res.ok) return [];
+  const data = await res.json();
+  const arr = Array.isArray(data) ? data : [];
+  addrCache.set(key, arr);
+  return arr;
+}
+
+function onAddrInput_() {
+  if (!addrSearchEl) return;
+  addrSelected = false;
+  showAddrError_(false);
+  setAddrClearVisible_(!!addrSearchEl.value.trim());
+
+  const q = addrSearchEl.value;
+  clearTimeout(addrDebounce);
+  addrDebounce = setTimeout(async () => {
+    try {
+      const results = await fetchAddrSuggestions_(q);
+      renderAddrSuggestions_(results);
+    } catch (_) {
+      // still allow manual
+      clearAddrSuggestions_();
+    }
+  }, 280);
+}
+
+function clearAddrAll_() {
+  addrSelected = false;
+  setAddrValue_('');
+  clearAddrSuggestions_();
+  showAddrError_(false);
+  // Wir lassen die manuellen Felder zu, falls sie gerade offen sind, ändern aber nichts.
+}
+
+if (addrSearchEl) {
+  addrSearchEl.addEventListener('input', onAddrInput_);
+  addrSearchEl.addEventListener('focus', () => {
+    if (addrSearchEl.value.trim()) onAddrInput_();
+  });
+}
+
+if (addrClearBtn) {
+  addrClearBtn.addEventListener('click', clearAddrAll_);
+}
+
+if (addrManualBtn) {
+  addrManualBtn.addEventListener('click', () => {
+    setManualAddressVisible_(true);
+    showAddrError_(false);
+    // Fokus auf erstes manuelles Feld
+    setTimeout(() => {
+      const s = document.getElementById('strasse');
+      if (s) s.focus();
+    }, 50);
+  });
+}
+
+// Close suggestion list on outside click
+document.addEventListener('click', (e) => {
+  if (!addrPickerEl) return;
+  if (!addrPickerEl.contains(e.target)) {
+    clearAddrSuggestions_();
+  }
+});
 
 // Cap PDF receipt rendering width based on file size (keeps memory + base64 reasonable)
 function maxWidthForPdfReceipt_(fileSizeBytes) {
@@ -1599,12 +1809,24 @@ function validate() {
   const errors = [];
   clearErrors();
 
+  // Adresse: entweder per Auswahl (Autocomplete) ODER manuell.
+  // Die Pflichtfelder bleiben technisch strasse/plz/ort/land.
+  const manualVisible = document.getElementById('addrManualFields') && document.getElementById('addrManualFields').style.display !== 'none';
+  const sEl = document.getElementById('strasse');
+  const pEl = document.getElementById('plz');
+  const oEl = document.getElementById('ort');
+  const lEl = document.getElementById('land');
+  const hasManualAddress = !!(sEl && sEl.value.trim() && pEl && pEl.value.trim() && oEl && oEl.value.trim() && lEl && lEl.value.trim());
+
+  if (!hasManualAddress) {
+    // Wenn weder automatisch übernommen (weil Felder leer) noch manuell ausgefüllt: Fehler am Adressblock
+    showAddrError_(true);
+    errors.push('Adresse fehlt.');
+  }
+
   const required = [
     { id: 'name', label: 'Vollständiger Name' },
-    { id: 'strasse', label: 'Straße & Hausnummer' },
-    { id: 'plz', label: 'Postleitzahl' },
-    { id: 'ort', label: 'Ort' },
-    { id: 'land', label: 'Land' },
+    // strasse/plz/ort/land werden über den Adressblock geprüft (oben)
     { id: 'projektnummer', label: 'Grund der Auslage' },
     { id: 'projektname', label: 'Freigegeben durch' },
     { id: 'iban', label: 'IBAN' },
