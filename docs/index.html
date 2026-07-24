@@ -446,10 +446,22 @@ select {
   line-height: 1.5;
 }
 
-/* ── Unterschrift ── */
-.sig-wrap {
-  margin-top: 0.9rem;
+.check-row.err-row {
+  border-bottom-color: rgba(204,0,0,0.5);
 }
+
+.check-row.err-row label {
+  color: var(--danger);
+}
+
+.check-row.err-row input[type="checkbox"] {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(204,0,0,0.12);
+  border-color: var(--danger);
+}
+
+/* ── Unterschrift ── */
+.sig-wrap { margin-top: 0.9rem; }
 
 .sig-head {
   display: flex;
@@ -487,6 +499,20 @@ select {
 }
 
 .sig-btn:active { background: rgba(232,0,90,0.06); border-color: var(--neon-magenta); color: var(--neon-magenta); }
+
+.sig-upload-note {
+  margin-top: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--gray-helmet);
+  line-height: 1.45;
+}
+
+.sig-upload-meta {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--neon-green);
+}
 
 .sig-pad {
   width: 100%;
@@ -869,17 +895,17 @@ select {
   <div class="card">
     <div class="card-title"><span class="step-dot">3</span> Bestätigung</div>
 
-    <div class="check-row">
+    <div class="check-row" id="row_confirmCorrect">
       <input type="checkbox" id="confirmCorrect" />
       <label for="confirmCorrect">Ich bestätige, dass alle Angaben wahrheitsgemäß und vollständig sind. Die aufgeführten Ausgaben wurden beruflich veranlasst und noch nicht anderweitig erstattet (§&nbsp;670 BGB).</label>
     </div>
 
-    <div class="check-row">
+    <div class="check-row" id="row_confirmOriginals">
       <input type="checkbox" id="confirmOriginals" />
       <label for="confirmOriginals">Ich bin mir bewusst, dass ich die Originalbelege zusätzlich in der Verwaltung abgeben muss.</label>
     </div>
 
-    <div class="check-row">
+    <div class="check-row" id="row_confirmQuality">
       <input type="checkbox" id="confirmQuality" />
       <label for="confirmQuality">Ich bestätige, dass alle hochgeladenen Belege gut lesbar sind und Datum, Betrag sowie Zweck klar erkennbar zeigen.</label>
     </div>
@@ -889,10 +915,16 @@ select {
         <div class="sig-label">Unterschrift <span class="req">*</span></div>
         <div class="sig-actions">
           <button class="sig-btn" type="button" onclick="clearSignature()">Leeren</button>
+          <button class="sig-btn" type="button" onclick="triggerSignatureUpload()">Unterschrift hochladen</button>
+          <input type="file" id="sigUpload" accept="image/jpeg,image/jpg,image/png" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleSignatureUpload(this)" />
         </div>
       </div>
       <canvas id="sigPad" class="sig-pad" aria-label="Unterschrift"></canvas>
-      <div class="sig-help">Mit dem Finger oder Stift unterschreiben. Falls die Fläche leer bleibt, kann das PDF nicht erstellt werden.</div>
+      <div class="sig-help" id="sigHelp">Mit dem Finger oder Stift unterschreiben. Alternativ kannst du eine Unterschrift als JPEG oder PNG hochladen.</div>
+      <div class="sig-upload-meta" id="sigUploadMeta" style="display:none;"></div>
+      <div class="sig-upload-note" id="sigUploadNote" style="display:none;">
+        Upload überschreibt die Zeichnung. <button class="sig-btn" type="button" onclick="clearSignatureUpload()" style="min-height:34px;padding:0 0.65rem;">Upload entfernen</button>
+      </div>
     </div>
 
     <p class="check-note">
@@ -991,6 +1023,63 @@ const KATEGORIEN = [
 
 let positions = [];
 let posId = 0;
+
+// Unterschrift Upload
+let sigUploadFile = null;
+let sigUploadDataURL = null;
+let sigUploadMime = null;
+
+function triggerSignatureUpload() {
+  const el = document.getElementById('sigUpload');
+  if (!el) return;
+  el.click();
+}
+
+function handleSignatureUpload(input) {
+  const file = input.files && input.files[0] ? input.files[0] : null;
+  if (!file) return;
+
+  const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+  if (!allowed.includes(file.type)) {
+    showToast('Bitte Unterschrift als JPEG oder PNG hochladen.', 'error');
+    input.value = '';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Die Unterschrift-Datei ist zu groß (max. 5 MB).', 'error');
+    input.value = '';
+    return;
+  }
+
+  sigUploadFile = file;
+  sigUploadMime = file.type;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    sigUploadDataURL = e && e.target ? e.target.result : null;
+    const meta = document.getElementById('sigUploadMeta');
+    const note = document.getElementById('sigUploadNote');
+    if (meta) { meta.style.display = ''; meta.textContent = '✓ Unterschrift-Datei: ' + file.name; }
+    if (note) note.style.display = '';
+
+    // Upload überschreibt Zeichnung: Canvas als "nicht erforderlich" markieren
+    const pad = document.getElementById('sigPad');
+    if (pad) pad.classList.remove('err-pad');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearSignatureUpload() {
+  sigUploadFile = null;
+  sigUploadDataURL = null;
+  sigUploadMime = null;
+  const input = document.getElementById('sigUpload');
+  if (input) input.value = '';
+  const meta = document.getElementById('sigUploadMeta');
+  const note = document.getElementById('sigUploadNote');
+  if (meta) { meta.style.display = 'none'; meta.textContent = ''; }
+  if (note) note.style.display = 'none';
+}
 
 // ── Dynamische UI-Logik ──────────────────────────────────────────────────────
 document.getElementById('iban').addEventListener('input', function() {
@@ -1100,7 +1189,7 @@ function renderPositions() {
           </span>
         </div>
         <span class="hint" style="margin-top:0.35rem;display:block;">
-          <em>Nur JPEG, PNG und PDF. Max. 20 MB. Auf gute Lesbarkeit achten (wird sonst abgelehnt).</em>
+          <em>Nur JPEG, PNG und PDF. Max. 20 MB. Auf gute Lesbarkeit achten.</em>
         </span>
       </div>
     `;
@@ -1229,9 +1318,13 @@ function validate() {
     if (posErr && card) card.classList.add('has-error');
   });
 
-  if (!document.getElementById('confirmCorrect').checked) errors.push('Bitte Richtigkeit der Angaben bestätigen.');
-  if (!document.getElementById('confirmOriginals').checked) errors.push('Bitte Abgabe der Originalbelege bestätigen.');
-  if (!document.getElementById('confirmQuality').checked) errors.push('Bitte Lesbarkeit der Belege bestätigen.');
+  const c1 = document.getElementById('confirmCorrect');
+  const c2 = document.getElementById('confirmOriginals');
+  const c3 = document.getElementById('confirmQuality');
+
+  if (!c1.checked) { errors.push('Bitte Richtigkeit der Angaben bestätigen.'); document.getElementById('row_confirmCorrect')?.classList.add('err-row'); }
+  if (!c2.checked) { errors.push('Bitte Abgabe der Originalbelege bestätigen.'); document.getElementById('row_confirmOriginals')?.classList.add('err-row'); }
+  if (!c3.checked) { errors.push('Bitte Lesbarkeit der Belege bestätigen.'); document.getElementById('row_confirmQuality')?.classList.add('err-row'); }
 
   if (!hasSignature()) {
     const pad = document.getElementById('sigPad');
@@ -1253,6 +1346,7 @@ function clearErrors() {
   document.querySelectorAll('.err').forEach(el => el.classList.remove('err'));
   document.querySelectorAll('.error-zone').forEach(el => el.classList.remove('error-zone'));
   document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+  document.querySelectorAll('.err-row').forEach(el => el.classList.remove('err-row'));
   const pad = document.getElementById('sigPad');
   if (pad) pad.classList.remove('err-pad');
   document.getElementById('errorSummary').classList.remove('active');
@@ -1479,9 +1573,11 @@ async function buildPDF(receiptNo) {
   doc.setTextColor(30, 30, 30);
   doc.text('Bestätigung der antragstellenden Person', 20, y);
   y += 5;
+
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8.5);
   doc.setTextColor(70, 65, 60);
+
   const confirmText = doc.splitTextToSize(
     'Ich bestätige hiermit, dass alle Angaben wahrheitsgemäß und vollständig sind. Die aufgeführten Ausgaben wurden beruflich veranlasst und wurden noch nicht anderweitig erstattet (§ 670 BGB). Die Originalbelege werden in der Verwaltung abgegeben.',
     170
@@ -1491,14 +1587,17 @@ async function buildPDF(receiptNo) {
 
   // Unterschrift
   const sigDataUrl = getSignatureDataURL();
-  y += 4;
+  const sigFmt = getSignatureImageFormat_();
 
+  y += 4;
   doc.setDrawColor(150, 145, 140);
   doc.setLineWidth(0.4);
   doc.line(20, y, 92, y);
 
   if (sigDataUrl) {
-    try { doc.addImage(sigDataUrl, 'PNG', 20, y - 16, 72, 14); } catch(e) {}
+    try {
+      doc.addImage(sigDataUrl, sigFmt, 20, y - 16, 72, 14);
+    } catch(e) {}
   }
 
   y += 6;
@@ -1506,17 +1605,18 @@ async function buildPDF(receiptNo) {
   doc.setFontSize(8);
   doc.setTextColor(130, 125, 120);
   // Datum automatisch
-  doc.text(`Datum: ${heute}  ·  Unterschrift (Antragsteller/in)`, 20, y);
+  doc.text(`Datum: ${heute} · Unterschrift (Antragsteller/in)`, 20, y);
 
   // Footer Seite 1
   doc.setFontSize(7.5);
   doc.setTextColor(180, 175, 170);
-  doc.text(`${receiptNo}  ·  Athanor Akademie Passau  ·  invoice@athanor.de  ·  Erstellt: ${heute}`, 105, 290, { align: 'center' });
+  doc.text(`${receiptNo} · Athanor Akademie Passau · invoice@athanor.de · Erstellt: ${heute}`,
+    105, 290, { align: 'center' }
+  );
 
   // ── Folgeseiten: Belege ──
   for (let i = 0; i < posData.length; i++) {
     const p = posData[i];
-
     const images = Array.isArray(p.receiptImages) && p.receiptImages.length
       ? p.receiptImages
       : (p.fileDataURL ? [p.fileDataURL] : []);
@@ -1524,17 +1624,14 @@ async function buildPDF(receiptNo) {
     if (!images.length) {
       if (p.file) {
         doc.addPage();
-
         doc.setFillColor(26, 26, 26);
         doc.rect(0, 0, 210, 10, 'F');
         doc.setFillColor(255, 45, 120);
         doc.rect(0, 9.5, 210, 1, 'F');
-
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
         doc.setTextColor(240, 240, 240);
-        doc.text('Athanor Akademie Passau  ·  Beleg zur Auslagenerstattung', 20, 7);
-
+        doc.text('Athanor Akademie Passau · Beleg zur Auslagenerstattung', 20, 7);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(50, 50, 50);
@@ -1545,11 +1642,13 @@ async function buildPDF(receiptNo) {
         doc.text('Beleg konnte nicht eingebettet werden: ' + (p.file ? p.file.name : ''), 20, 40);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(80, 75, 70);
-        doc.text('Bitte Beleg als JPEG hochladen oder PDF erneut versuchen.', 20, 48);
+        doc.text('Bitte Beleg als JPEG/PNG hochladen oder PDF erneut versuchen.', 20, 48);
 
         doc.setFontSize(7.5);
         doc.setTextColor(180, 175, 170);
-        doc.text(`${receiptNo || ''}  ·  Seite ${doc.internal.getNumberOfPages()}  ·  Athanor Akademie Passau  ·  ${name}  ·  ${projekt}`, 105, 290, { align: 'center' });
+        doc.text(`${receiptNo || ''} · Seite ${doc.internal.getNumberOfPages()} · Athanor Akademie Passau · ${name} · ${projekt}`,
+          105, 290, { align: 'center' }
+        );
       }
       continue;
     }
@@ -1557,7 +1656,6 @@ async function buildPDF(receiptNo) {
     for (let pg = 0; pg < images.length; pg++) {
       const imgUrl = images[pg];
       doc.addPage();
-
       doc.setFillColor(26, 26, 26);
       doc.rect(0, 0, 210, 10, 'F');
       doc.setFillColor(255, 45, 120);
@@ -1566,7 +1664,7 @@ async function buildPDF(receiptNo) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(240, 240, 240);
-      doc.text('Athanor Akademie Passau  ·  Beleg zur Auslagenerstattung', 20, 7);
+      doc.text('Athanor Akademie Passau · Beleg zur Auslagenerstattung', 20, 7);
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
@@ -1576,7 +1674,7 @@ async function buildPDF(receiptNo) {
 
       doc.setTextColor(120, 115, 110);
       doc.text(
-        `Datum: ${p.datum ? new Date(p.datum).toLocaleDateString('de-DE') : '—'}  |  Betrag: ${p.betrag.toLocaleString('de-DE',{minimumFractionDigits:2})} €  |  ${p.kategorie}`,
+        `Datum: ${p.datum ? new Date(p.datum).toLocaleDateString('de-DE') : '—'} | Betrag: ${p.betrag.toLocaleString('de-DE',{minimumFractionDigits:2})} € | ${p.kategorie}`,
         20, 24
       );
 
@@ -1584,7 +1682,19 @@ async function buildPDF(receiptNo) {
       doc.line(20, 27, 190, 27);
 
       try {
-        doc.addImage(imgUrl, 'JPEG', 20, 32, 170, 220, undefined, 'MEDIUM');
+        // Fit-to-box (no crop, keeps aspect ratio)
+        const boxX = 20, boxY = 32, boxW = 170, boxH = 220;
+        let props = null;
+        try { props = doc.getImageProperties(imgUrl); } catch (_) { props = null; }
+        const iw = props && props.width ? props.width : boxW;
+        const ih = props && props.height ? props.height : boxH;
+        const s = Math.min(boxW / iw, boxH / ih);
+        const w = iw * s;
+        const h = ih * s;
+        const x = boxX + (boxW - w) / 2;
+        const y = boxY + (boxH - h) / 2;
+        const fmt = (props && props.fileType ? String(props.fileType).toUpperCase() : '').includes('PNG') ? 'PNG' : 'JPEG';
+        doc.addImage(imgUrl, fmt, x, y, w, h, undefined, 'MEDIUM');
       } catch (e) {
         doc.setFontSize(9);
         doc.setTextColor(180, 0, 0);
@@ -1593,7 +1703,9 @@ async function buildPDF(receiptNo) {
 
       doc.setFontSize(7.5);
       doc.setTextColor(180, 175, 170);
-      doc.text(`${receiptNo || ''}  ·  Seite ${doc.internal.getNumberOfPages()}  ·  Athanor Akademie Passau  ·  ${name}  ·  ${projekt}`, 105, 290, { align: 'center' });
+      doc.text(`${receiptNo || ''} · Seite ${doc.internal.getNumberOfPages()} · Athanor Akademie Passau · ${name} · ${projekt}`,
+        105, 290, { align: 'center' }
+      );
     }
   }
 
@@ -1611,6 +1723,7 @@ async function submitForm() {
   const overlay = document.getElementById('sendingOverlay');
   const overlayText = document.getElementById('sendingText');
   const overlaySub = document.getElementById('sendingSub');
+
   if (overlay) overlay.style.display = 'flex';
   if (overlayText) overlayText.textContent = 'Vorgangsnummer wird erstellt …';
   if (overlaySub) overlaySub.textContent = 'Bitte nicht schließen.';
@@ -1619,11 +1732,7 @@ async function submitForm() {
     // 1) Vorgangsnummer zuerst holen (damit PDF + Mail identisch sind)
     let receiptNo = '';
     try {
-      const r = await fetch(SCRIPT_WEBAPP_URL + '?action=nextNo', {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'no-store'
-      });
+      const r = await fetch(SCRIPT_WEBAPP_URL + '?action=nextNo', { method: 'GET', mode: 'cors', cache: 'no-store' });
       const t = await r.text();
       const j = t ? JSON.parse(t) : null;
       if (j && j.ok && j.receiptNo) receiptNo = String(j.receiptNo);
@@ -1637,7 +1746,6 @@ async function submitForm() {
     // 2) PDF bauen
     if (overlayText) overlayText.textContent = `PDF wird erstellt (${receiptNo}) …`;
     if (overlaySub) overlaySub.textContent = 'Belege werden eingebettet – das kann je nach Anzahl/Größe etwas dauern.';
-
     const doc = await buildPDF(receiptNo);
 
     const dataUri = doc.output('datauristring');
@@ -1679,8 +1787,7 @@ async function submitForm() {
     if (overlayText) overlayText.textContent = 'PDF wird versendet …';
     if (overlaySub) overlaySub.textContent = 'E-Mail wird über den Server verschickt. Bitte nicht schließen.';
 
-    let res;
-    res = await fetch(SCRIPT_WEBAPP_URL, {
+    const res = await fetch(SCRIPT_WEBAPP_URL, {
       method: 'POST',
       mode: 'cors',
       cache: 'no-store',
@@ -1723,15 +1830,18 @@ function startOver() {
 
 function resetForm(silent) {
   if (!silent && !confirm('Formular wirklich zurücksetzen? Alle Eingaben gehen verloren.')) return;
+
   ['name','strasse','plz','ort','projektnummer','projektname','iban','bic','kontoinhaber','vorschussBetrag','emailSender','bankname'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+
   const landEl = document.getElementById('land');
   if (landEl) landEl.value = 'Deutschland';
 
   const vorschEl = document.getElementById('vorschuss');
   if (vorschEl) vorschEl.value = 'nein';
+
   const vbField = document.getElementById('vorschussBetragField');
   if (vbField) vbField.style.display = 'none';
 
@@ -1740,12 +1850,15 @@ function resetForm(silent) {
     if (el) el.checked = false;
   });
 
+  clearSignatureUpload();
   clearSignature();
 
   positions = [];
   posId = 0;
   addPosition();
+
   clearErrors();
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1758,6 +1871,7 @@ function resizeSigPad() {
   if (!canvas) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
+
   const w = Math.max(1, Math.floor(rect.width * dpr));
   const h = Math.max(1, Math.floor(rect.height * dpr));
 
@@ -1775,7 +1889,6 @@ function resizeSigPad() {
   ctx.lineJoin = 'round';
   ctx.lineWidth = 2.4;
   ctx.strokeStyle = '#111';
-
   ctx.drawImage(tmp, 0, 0, tmp.width, tmp.height, 0, 0, rect.width, rect.height);
 }
 
@@ -1787,10 +1900,12 @@ function getSigPoint(e) {
 }
 
 function sigStart(e) {
+  // Wenn Upload vorhanden ist, lassen wir Zeichnen zu, aber Upload bleibt maßgeblich.
   const canvas = document.getElementById('sigPad');
   if (!canvas) return;
   sigDrawing = true;
   canvas.classList.remove('err-pad');
+
   const p = getSigPoint(e);
   const ctx = canvas.getContext('2d');
   ctx.beginPath();
@@ -1826,21 +1941,34 @@ function clearSignature() {
 }
 
 function hasSignature() {
-  return !!sigHasInk;
+  return !!sigUploadDataURL || !!sigHasInk;
+}
+
+function getSignatureImageFormat_() {
+  if (sigUploadDataURL) {
+    if (sigUploadMime === 'image/jpeg' || sigUploadMime === 'image/jpg') return 'JPEG';
+    return 'PNG';
+  }
+  return 'PNG';
 }
 
 function getSignatureDataURL() {
-  if (!hasSignature()) return null;
+  // Upload überschreibt Zeichnung
+  if (sigUploadDataURL) return sigUploadDataURL;
+
+  if (!sigHasInk) return null;
   const canvas = document.getElementById('sigPad');
   if (!canvas) return null;
 
   const ctx = canvas.getContext('2d');
   const w = canvas.width;
   const h = canvas.height;
+
   const imgData = ctx.getImageData(0, 0, w, h);
   const data = imgData.data;
 
   let minX = w, minY = h, maxX = 0, maxY = 0;
+
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -1870,6 +1998,7 @@ function getSignatureDataURL() {
   const out = document.createElement('canvas');
   out.width = cw;
   out.height = ch;
+
   const octx = out.getContext('2d');
   octx.fillStyle = '#ffffff';
   octx.fillRect(0, 0, cw, ch);
@@ -1881,6 +2010,7 @@ function getSignatureDataURL() {
 (function initSignaturePad(){
   const canvas = document.getElementById('sigPad');
   if (!canvas) return;
+
   resizeSigPad();
 
   canvas.addEventListener('pointerdown', sigStart);
@@ -1902,5 +2032,6 @@ function showToast(msg, type) {
   t._timer = setTimeout(() => { t.className = 'toast'; }, 4500);
 }
 </script>
+
 </body>
 </html>
