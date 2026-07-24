@@ -265,6 +265,21 @@ select:focus {
 /* Datepicker-Akzent (unterstützt in modernen Browsern; bei iOS/Android teils OS-gesteuert) */
 :root { accent-color: var(--neon-magenta); }
 
+/* Datepicker (Browser/OS UI): best effort.
+   - `accent-color` wirkt in vielen Browsern (Checkbox, Radio, teils Kalender-Highlights)
+   - iOS/Safari und einige Chromium-Teile bleiben system-blau und sind nicht komplett überschreibbar.
+*/
+input[type="date"] {
+  accent-color: var(--neon-magenta);
+}
+
+/* Chromium/Edge: Kalender-Icon und Fokus-Akzente (wo erlaubt) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.55;
+}
+
+
 select.err {
   border-color: var(--danger);
   background: var(--danger-bg);
@@ -2323,7 +2338,24 @@ async function buildPDF(receiptNo) {
 
   if (sigDataUrl) {
     try {
-      doc.addImage(sigDataUrl, sigFmt, 20, y - 16, 72, 14);
+      // Fit-to-box (no crop, keeps aspect ratio)
+      const boxX = 20;
+      const boxY = y - 18;
+      const boxW = 72;
+      const boxH = 16;
+
+      let props = null;
+      try { props = doc.getImageProperties(sigDataUrl); } catch (_) { props = null; }
+      const iw = props && props.width ? props.width : boxW;
+      const ih = props && props.height ? props.height : boxH;
+
+      const s = Math.min(boxW / iw, boxH / ih);
+      const w = iw * s;
+      const h = ih * s;
+      const x = boxX + (boxW - w) / 2;
+      const yy = boxY + (boxH - h) / 2;
+
+      doc.addImage(sigDataUrl, sigFmt, x, yy, w, h, undefined, 'FAST');
     } catch(e) {}
   }
 
@@ -2708,6 +2740,7 @@ function getSignatureDataURL() {
       const a = data[i + 3];
       if (a > 0) {
         const r = data[i], g = data[i + 1], b = data[i + 2];
+        // Near-white pixels are background (ignore them)
         if (r > 245 && g > 245 && b > 245) continue;
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -2719,6 +2752,7 @@ function getSignatureDataURL() {
 
   if (minX > maxX || minY > maxY) return canvas.toDataURL('image/png');
 
+  // Tight crop around ink (we'll place this into a normalized canvas afterwards)
   const pad = Math.floor(Math.min(w, h) * 0.03);
   minX = Math.max(0, minX - pad);
   minY = Math.max(0, minY - pad);
@@ -2728,14 +2762,50 @@ function getSignatureDataURL() {
   const cw = maxX - minX + 1;
   const ch = maxY - minY + 1;
 
+  const crop = document.createElement('canvas');
+  crop.width = cw;
+  crop.height = ch;
+
+  const cctx = crop.getContext('2d');
+  cctx.fillStyle = '#ffffff';
+  cctx.fillRect(0, 0, cw, ch);
+  cctx.drawImage(canvas, minX, minY, cw, ch, 0, 0, cw, ch);
+
+  // IMPORTANT:
+  // Do NOT return the tightly cropped image.
+  // A very tall signature would later be placed into a fixed-height box in the PDF and get squashed.
+  // Instead: return a normalized image with the SAME aspect ratio as the signature pad,
+  // centering the ink inside. That way the PDF placement can stay consistent and the signature
+  // keeps its natural proportions.
+
+  const padRect = canvas.getBoundingClientRect();
+  const padAspect = (padRect && padRect.width > 0 && padRect.height > 0)
+    ? (padRect.width / padRect.height)
+    : (3.5);
+
+  // Keep base64 reasonable but crisp
+  const exportW = 1200;
+  const exportH = Math.max(1, Math.round(exportW / padAspect));
+
   const out = document.createElement('canvas');
-  out.width = cw;
-  out.height = ch;
+  out.width = exportW;
+  out.height = exportH;
 
   const octx = out.getContext('2d');
   octx.fillStyle = '#ffffff';
-  octx.fillRect(0, 0, cw, ch);
-  octx.drawImage(canvas, minX, minY, cw, ch, 0, 0, cw, ch);
+  octx.fillRect(0, 0, exportW, exportH);
+
+  const margin = Math.round(Math.min(exportW, exportH) * 0.06);
+  const boxW = exportW - 2 * margin;
+  const boxH = exportH - 2 * margin;
+
+  const s = Math.min(boxW / cw, boxH / ch);
+  const dw = Math.round(cw * s);
+  const dh = Math.round(ch * s);
+  const dx = Math.round((exportW - dw) / 2);
+  const dy = Math.round((exportH - dh) / 2);
+
+  octx.drawImage(crop, 0, 0, cw, ch, dx, dy, dw, dh);
 
   return out.toDataURL('image/png');
 }
