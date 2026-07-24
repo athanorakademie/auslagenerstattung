@@ -87,11 +87,11 @@ header {
 
 /* ── Banner ── */
 .banner {
-  background: rgba(201,168,0,0.07);
-  border-left: 3px solid #c9a800;
+  background: rgba(232,0,90,0.06);
+  border-left: 3px solid var(--neon-magenta);
   padding: 0.85rem 1.25rem;
   font-size: 0.82rem;
-  color: #7a6300;
+  color: var(--text);
   line-height: 1.55;
 }
 
@@ -198,6 +198,65 @@ select {
 }
 
 select:focus {
+  outline: none;
+  border-color: var(--neon-magenta);
+}
+
+/* ── Bank picker (Autocomplete) ── */
+.bank-picker { position: relative; }
+.bank-picker input#bankname { padding-right: 2.6rem; }
+.bank-clear {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 36px;
+  min-width: 36px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  color: var(--gray-helmet);
+  cursor: pointer;
+}
+.bank-clear:focus { outline: none; border-color: var(--neon-magenta); box-shadow: 0 0 0 3px rgba(232,0,90,0.18); }
+.bank-suggestions {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  margin-top: 0.35rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+.bank-suggestions .bank-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+}
+.bank-suggestions .bank-item:hover,
+.bank-suggestions .bank-item[aria-selected="true"] {
+  background: rgba(232,0,90,0.06);
+}
+.bank-item .bn { font-weight: 700; color: var(--text); }
+.bank-item .bb { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.85rem; color: var(--gray-helmet); }
+.bank-inline-actions { margin-top: 0.35rem; }
+.bank-manual {
+  background: transparent;
+  border: none;
+  color: var(--neon-magenta);
+  font-weight: 700;
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+.bank-manual:focus { outline: none; text-decoration: underline; }
+.bank-note { margin-top: 0.25rem; font-size: 0.75rem; color: var(--gray-helmet); }
+
   outline: none;
   border-color: var(--neon-magenta);
   box-shadow: 0 0 0 3px rgba(232,0,90,0.16);
@@ -772,7 +831,7 @@ select {
 
 <div class="banner">
   <strong>Hinweis</strong>
-  Alle Felder vollständig ausfüllen. Für jede Position einen Beleg hochladen (JPEG oder PDF). Die <strong>Originalbelege sind zusätzlich in der Verwaltung abzugeben.</strong>
+  Alle Felder vollständig ausfüllen. Für jede Position einen Beleg hochladen (JPEG, PNG oder PDF). <strong>Die Originalbelege sind zusätzlich in der Verwaltung abzugeben.</strong>
 </div>
 
 <div id="mainForm">
@@ -835,14 +894,22 @@ select {
 
     <div class="field">
       <label>Name der Bank <span class="req">*</span></label>
-      <input type="text" id="bankname" placeholder="z.B. Sparkasse" autocomplete="organization" />
+      <div class="bank-picker" id="bankPicker">
+        <input type="text" id="bankname" placeholder="Bank suchen (z.B. Sparkasse, Deutsche Bank …)" autocomplete="organization" />
+        <button type="button" class="bank-clear" id="bankClear" aria-label="Auswahl löschen" title="Auswahl löschen" style="display:none;">✕</button>
+        <div class="bank-suggestions" id="bankSuggestions" role="listbox" aria-label="Bankvorschläge" style="display:none;"></div>
+      </div>
+      <div class="bank-inline-actions">
+        <button type="button" class="bank-manual" id="bankManualBtn">Bank nicht gefunden – manuell eingeben</button>
+      </div>
+      <div class="bank-note" id="bankNote">Tipp: Bank auswählen → BIC wird automatisch gesetzt.</div>
     </div>
 
     <div class="field">
-      <label>BIC / SWIFT <span class="req" id="bicReq" style="display:none;">*</span> <span id="bicOptLabel" style="display:none;font-size:0.72rem;font-weight:400;color:var(--gray-helmet);">(optional bei deutscher IBAN)</span></label>
+      <label>BIC / SWIFT <span class="req" id="bicReq" style="display:none;">*</span></label>
       <input type="text" id="bic" placeholder="z.B. SSKMDEMMXXX" maxlength="11" autocomplete="off"
         oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" />
-      <span class="hint" id="bicHint">Pflichtangabe bei österreichischen und internationalen Konten.</span>
+      <span class="hint" id="bicHint">Wird bei Bankauswahl automatisch gesetzt. Bei internationalen Konten ggf. manuell ergänzen.</span>
     </div>
 
     <div class="field">
@@ -885,9 +952,6 @@ select {
       <span class="tv" id="total">0,00 €</span>
     </div>
 
-    <div class="original-hint">
-      <strong>Originalbelege abgeben:</strong> Gemäß den Anforderungen der GoBD und des deutschen Steuerrechts sind Originalbelege zusätzlich zu diesem digitalen Formular in der Verwaltung der Athanor Akademie Passau abzugeben.
-    </div>
   </div>
 
   <div class="divider"></div>
@@ -902,7 +966,7 @@ select {
 
     <div class="check-row" id="row_confirmOriginals">
       <input type="checkbox" id="confirmOriginals" />
-      <label for="confirmOriginals">Ich bin mir bewusst, dass ich die Originalbelege zusätzlich in der Verwaltung abgeben muss.</label>
+      <label for="confirmOriginals">Ich bestätige, dass ich die Originalbelege <strong>zwingend</strong> zusätzlich in der Verwaltung abgebe. Mir ist bewusst: <strong>Ohne Originalbelege keine Erstattung.</strong></label>
     </div>
 
     <div class="check-row" id="row_confirmQuality">
@@ -928,7 +992,7 @@ select {
     </div>
 
     <p class="check-note">
-      Nach dem Absenden erhältst du das PDF an <strong>deine E-Mail-Adresse</strong>. Bitte gib die Originalbelege zusätzlich in der Verwaltung ab.
+      Nach dem Absenden erhältst du deine Abrechnung an <strong>deine E-Mail-Adresse</strong>. <strong>Wichtig:</strong> Bitte gib die <strong>Originalbelege zwingend</strong> in der Verwaltung ab – <strong>ohne Originalbelege keine Erstattung</strong>.
     </p>
   </div>
 
@@ -938,8 +1002,8 @@ select {
 <div class="success-screen" id="successScreen">
   <div class="success-icon">✅</div>
   <h2>Abrechnung erstellt</h2>
-  <p>Das PDF wurde per E-Mail versendet.</p>
-  <p class="warn-text">Vergiss nicht, die Originalbelege in der Verwaltung abzugeben.</p>
+  <p>Deine Abrechnung wurde per E-Mail versendet.</p>
+  <p class="warn-text"><strong>Wichtig:</strong> Bitte gib die <strong>Originalbelege zwingend</strong> in der Verwaltung ab – <strong>ohne Originalbelege keine Erstattung</strong>.</p>
   <button class="btn-primary" onclick="startOver()">Neue Abrechnung erstellen</button>
 </div>
 
@@ -1029,6 +1093,268 @@ let sigUploadFile = null;
 let sigUploadDataURL = null;
 let sigUploadMime = null;
 
+// ── Bankauswahl (Autocomplete → BIC) ────────────────────────────────────────
+// Hinweis: Diese Liste ist bewusst pragmatisch. Ihr könnt sie jederzeit erweitern.
+// Format: { n: 'Anzeigename', bic: 'BIC' }
+const BANKS = [
+  { n: 'Deutsche Bank', bic: 'DEUTDEFF' },
+  { n: 'Commerzbank', bic: 'COBADEFF' },
+  { n: 'DZ BANK', bic: 'GENODEFFXXX' },
+  { n: 'ING-DiBa', bic: 'INGDDEFFXXX' },
+  { n: 'UniCredit Bank (HypoVereinsbank)', bic: 'HYVEDEMMXXX' },
+  { n: 'Postbank', bic: 'PBNKDEFFXXX' },
+  { n: 'KfW', bic: 'KFWIDEFFXXX' },
+  { n: 'Hamburger Sparkasse', bic: 'HASPDEHHXXX' },
+  { n: 'Berliner Sparkasse', bic: 'BELADEBEXXX' },
+  { n: 'Stadtsparkasse München', bic: 'SSKMDEMMXXX' },
+  { n: 'Frankfurter Sparkasse', bic: 'HELADEF1822' },
+  { n: 'Stadtsparkasse KölnBonn', bic: 'COLSDE33XXX' },
+  { n: 'Stadtsparkasse Düsseldorf', bic: 'DUSSDEDDXXX' },
+  { n: 'Stadtsparkasse Wuppertal', bic: 'WUPSDE33XXX' },
+  { n: 'Sparkasse Hannover', bic: 'SPKHDE2HXXX' },
+  { n: 'Sparkasse Bremen', bic: 'SBREDE22XXX' },
+  { n: 'Sparkasse Leipzig', bic: 'WELADE8LXXX' },
+  { n: 'Sparkasse Nürnberg', bic: 'SSPNDE66XXX' },
+  { n: 'Sparkasse Dortmund', bic: 'DORTDE33XXX' },
+  { n: 'Sparkasse Essen', bic: 'SPESDE3EXXX' },
+  { n: 'Sparkasse Karlsruhe', bic: 'KARSDE66XXX' },
+  { n: 'Sparkasse Freiburg', bic: 'FRSPDE66XXX' },
+  { n: 'Sparkasse Augsburg', bic: 'AUGSDE77XXX' },
+  { n: 'Sparkasse Passau', bic: 'BYLADEM1PAS' },
+  { n: 'Kreissparkasse Köln', bic: 'COKSDE33XXX' },
+  { n: 'Kreissparkasse München Starnberg Ebersberg', bic: 'BYLADEM1KMS' },
+  { n: 'Kreissparkasse Düsseldorf', bic: 'DUSSDEDDXXX' },
+  { n: 'LBBW (Landesbank Baden-Württemberg)', bic: 'SOLADESTXXX' },
+  { n: 'BayernLB', bic: 'BYLADEMMXXX' },
+  { n: 'Helaba', bic: 'HELADEFFXXX' },
+  { n: 'Nord/LB', bic: 'NOLADE2HXXX' },
+  { n: 'HSH Nordbank / Hamburg Commercial Bank', bic: 'HSHNDEHHXXX' },
+  { n: 'DKB Deutsche Kreditbank', bic: 'BYLADEM1001' },
+  { n: 'N26', bic: 'NTSBDEB1XXX' },
+  { n: 'bunq', bic: 'BUNQNL2A' },
+  { n: 'Revolut', bic: 'REVOLT21' },
+  { n: 'Santander', bic: 'SCFBDE33XXX' },
+  { n: 'Targobank', bic: 'CITIDEFFXXX' },
+  { n: 'Consorsbank', bic: 'CSDBDE71XXX' },
+  { n: 'Volksbank', bic: 'GENODEF1XXX' },
+  { n: 'Raiffeisenbank', bic: 'GENODEF1XXX' },
+  { n: 'Sparda-Bank', bic: 'GENODEF1S03' },
+  { n: 'GLS Bank', bic: 'GENODEM1GLS' },
+  { n: 'Triodos Bank', bic: 'TRIONL2U' },
+  { n: 'Kreissparkasse', bic: 'BYLADEM1XXX' }
+];
+
+let bankPickerState_ = {
+  open: false,
+  highlighted: -1,
+  selected: null,
+  manualMode: false
+};
+
+function norm_(s) {
+  return String(s || '').toLowerCase().trim()
+    .replace(/\s+/g, ' ')
+    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');
+}
+
+function bankMatches_(bank, q) {
+  if (!q) return true;
+  const n = norm_(bank.n);
+  const qq = norm_(q);
+  return n.includes(qq);
+}
+
+function getBankSuggestions_(q, limit = 8) {
+  const list = BANKS.filter(b => bankMatches_(b, q));
+  // leichte Priorisierung: beginnt mit Query
+  const qq = norm_(q);
+  list.sort((a,b) => {
+    const an = norm_(a.n), bn = norm_(b.n);
+    const aStarts = qq && an.startsWith(qq) ? 0 : 1;
+    const bStarts = qq && bn.startsWith(qq) ? 0 : 1;
+    if (aStarts !== bStarts) return aStarts - bStarts;
+    return an.localeCompare(bn);
+  });
+  return list.slice(0, limit);
+}
+
+function setBankSelection_(bank) {
+  const bankEl = document.getElementById('bankname');
+  const bicEl = document.getElementById('bic');
+  const clearBtn = document.getElementById('bankClear');
+  if (!bankEl || !bicEl) return;
+
+  bankPickerState_.selected = bank;
+  bankPickerState_.manualMode = false;
+
+  bankEl.value = bank.n;
+  bicEl.value = (bank.bic || '').toUpperCase();
+
+  if (clearBtn) clearBtn.style.display = '';
+  closeBankSuggestions_();
+}
+
+function clearBankSelection_() {
+  const bankEl = document.getElementById('bankname');
+  const bicEl = document.getElementById('bic');
+  const clearBtn = document.getElementById('bankClear');
+  if (bankEl) bankEl.value = '';
+  if (bicEl) bicEl.value = '';
+  bankPickerState_.selected = null;
+  if (clearBtn) clearBtn.style.display = 'none';
+  closeBankSuggestions_();
+}
+
+function enableManualBankMode_() {
+  bankPickerState_.manualMode = true;
+  bankPickerState_.selected = null;
+  closeBankSuggestions_();
+  const bankEl = document.getElementById('bankname');
+  const bicEl = document.getElementById('bic');
+  const clearBtn = document.getElementById('bankClear');
+  if (clearBtn) clearBtn.style.display = '';
+  if (bankEl) bankEl.focus();
+  if (bicEl && !bicEl.value.trim()) bicEl.focus();
+}
+
+function openBankSuggestions_(items) {
+  const box = document.getElementById('bankSuggestions');
+  if (!box) return;
+
+  box.innerHTML = '';
+  items.forEach((b, idx) => {
+    const div = document.createElement('div');
+    div.className = 'bank-item';
+    div.setAttribute('role', 'option');
+    div.setAttribute('aria-selected', 'false');
+    div.dataset.idx = String(idx);
+    div.innerHTML = `<span class="bn">${escapeHtml_(b.n)}</span><span class="bb">${escapeHtml_((b.bic||'').toUpperCase())}</span>`;
+    div.addEventListener('mousedown', (e) => {
+      // mousedown statt click: verhindert blur-close, besonders auf iOS
+      e.preventDefault();
+      setBankSelection_(b);
+    });
+    box.appendChild(div);
+  });
+
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'bank-item';
+    empty.style.cursor = 'default';
+    empty.innerHTML = `<span class="bn">Keine Treffer</span><span class="bb">Manuell eingeben</span>`;
+    box.appendChild(empty);
+  }
+
+  bankPickerState_.open = true;
+  bankPickerState_.highlighted = -1;
+  box.style.display = '';
+}
+
+function closeBankSuggestions_() {
+  const box = document.getElementById('bankSuggestions');
+  if (!box) return;
+  bankPickerState_.open = false;
+  bankPickerState_.highlighted = -1;
+  box.style.display = 'none';
+}
+
+function highlightBankItem_(nextIdx) {
+  const box = document.getElementById('bankSuggestions');
+  if (!box) return;
+  const items = Array.from(box.querySelectorAll('.bank-item[role="option"]'));
+  items.forEach(el => el.setAttribute('aria-selected', 'false'));
+  if (nextIdx >= 0 && nextIdx < items.length) {
+    items[nextIdx].setAttribute('aria-selected', 'true');
+    bankPickerState_.highlighted = nextIdx;
+  }
+}
+
+function escapeHtml_(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function initBankPicker_() {
+  const bankEl = document.getElementById('bankname');
+  const clearBtn = document.getElementById('bankClear');
+  const manualBtn = document.getElementById('bankManualBtn');
+  const box = document.getElementById('bankSuggestions');
+  if (!bankEl || !box) return;
+
+  bankEl.addEventListener('input', () => {
+    bankPickerState_.selected = null;
+    const q = bankEl.value;
+    const items = getBankSuggestions_(q, 10);
+    openBankSuggestions_(items);
+  });
+
+  bankEl.addEventListener('focus', () => {
+    const q = bankEl.value;
+    const items = getBankSuggestions_(q, 10);
+    openBankSuggestions_(items);
+  });
+
+  bankEl.addEventListener('keydown', (e) => {
+    if (!bankPickerState_.open) return;
+    const q = bankEl.value;
+    const items = getBankSuggestions_(q, 10);
+    const max = items.length - 1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = Math.min(max, bankPickerState_.highlighted + 1);
+      highlightBankItem_(next);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const next = Math.max(0, bankPickerState_.highlighted - 1);
+      highlightBankItem_(next);
+    } else if (e.key === 'Enter') {
+      if (bankPickerState_.highlighted >= 0 && bankPickerState_.highlighted <= max) {
+        e.preventDefault();
+        setBankSelection_(items[bankPickerState_.highlighted]);
+      }
+    } else if (e.key === 'Escape') {
+      closeBankSuggestions_();
+    }
+  });
+
+  bankEl.addEventListener('blur', () => {
+    // Delay: ermöglicht Auswahl per mousedown
+    setTimeout(() => {
+      closeBankSuggestions_();
+
+      // Wenn Text existiert aber keine Auswahl: manuell zulassen (und BIC nicht überschreiben)
+      const v = bankEl.value.trim();
+      if (v && !bankPickerState_.selected) {
+        bankPickerState_.manualMode = true;
+        if (clearBtn) clearBtn.style.display = '';
+      }
+    }, 120);
+  });
+
+  document.addEventListener('click', (e) => {
+    const picker = document.getElementById('bankPicker');
+    if (!picker) return;
+    if (!picker.contains(e.target)) closeBankSuggestions_();
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      clearBankSelection_();
+      bankEl.focus();
+    });
+  }
+  if (manualBtn) {
+    manualBtn.addEventListener('click', () => {
+      enableManualBankMode_();
+    });
+  }
+}
+
 function triggerSignatureUpload() {
   const el = document.getElementById('sigUpload');
   if (!el) return;
@@ -1082,15 +1408,26 @@ function clearSignatureUpload() {
 }
 
 // ── Dynamische UI-Logik ──────────────────────────────────────────────────────
-document.getElementById('iban').addEventListener('input', function() {
-  const val = this.value.replace(/\s/g, '').toUpperCase();
-  const isDE = val.startsWith('DE');
-  document.getElementById('bicReq').style.display = isDE ? 'none' : '';
-  document.getElementById('bicOptLabel').style.display = isDE ? '' : 'none';
-  document.getElementById('bicHint').textContent = isDE
-    ? 'Bei deutschen Konten optional, aber empfohlen.'
-    : 'Pflichtangabe bei österreichischen und internationalen Konten.';
-});
+function updateBicRequirementByIban_() {
+  const ibanEl = document.getElementById('iban');
+  const bicReq = document.getElementById('bicReq');
+  const hint = document.getElementById('bicHint');
+  if (!ibanEl || !bicReq || !hint) return;
+
+  const v = (ibanEl.value || '').replace(/\s/g, '').toUpperCase();
+  const isDe = v.startsWith('DE');
+
+  if (isDe) {
+    bicReq.style.display = 'none';
+    hint.textContent = 'Wird bei Bankauswahl automatisch gesetzt. Bei internationalen Konten ggf. manuell ergänzen.';
+  } else {
+    bicReq.style.display = 'inline';
+    hint.textContent = 'BIC / SWIFT ist bei nicht-deutschen IBANs Pflicht.';
+  }
+}
+
+document.getElementById('iban').addEventListener('input', updateBicRequirementByIban_);
+updateBicRequirementByIban_();
 
 document.getElementById('vorschuss').addEventListener('change', function() {
   document.getElementById('vorschussBetragField').style.display =
@@ -1103,6 +1440,7 @@ document.getElementById('vorschussBetrag').addEventListener('input', function() 
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+initBankPicker_();
 addPosition();
 
 function addPosition() {
@@ -1185,7 +1523,7 @@ function renderPositions() {
             accept="image/jpeg,image/jpg,image/png,application/pdf"
             onchange="handleFile(${p.id}, this)" />
           <span class="uz-text" id="ztext_${p.id}">
-            ${fn ? '✓ ' + fn : '📎 JPEG oder PDF auswählen'}
+            ${fn ? '✓ ' + fn : '📎 JPEG, PNG oder PDF auswählen'}
           </span>
         </div>
         <span class="hint" style="margin-top:0.35rem;display:block;">
@@ -1282,10 +1620,12 @@ function validate() {
   const ibanVal = document.getElementById('iban').value.replace(/\s/g, '').slice(0,22);
   const isDeIban = ibanVal.toUpperCase().startsWith('DE');
   const bicVal = document.getElementById('bic').value.trim();
+  // BIC bleibt nur bei nicht-deutschen IBANs Pflicht
   if (!isDeIban && !bicVal) {
     document.getElementById('bic').classList.add('err');
     errors.push('BIC / SWIFT ist bei nicht-deutschen IBANs Pflicht.');
   }
+  // Wenn DE-IBAN, aber BIC vorhanden: akzeptieren (wird ggf. automatisch gesetzt)
   if (ibanVal && (ibanVal.length < 15 || ibanVal.length > 22 || !/^[A-Z]{2}/i.test(ibanVal))) {
     document.getElementById('iban').classList.add('err');
     errors.push('IBAN hat ein ungültiges Format.');
@@ -1432,25 +1772,26 @@ async function buildPDF(receiptNo) {
   const total = totalBrutto - vorschussAbzug;
 
   // ── Seite 1 ──
-  doc.setFillColor(26, 26, 26);
+  // Header im Magenta-Konzept (statt Schwarzflächen)
+  doc.setFillColor(250, 244, 247); // sehr helles Magenta-Tint
   doc.rect(0, 0, 210, 14, 'F');
-  doc.setFillColor(255, 45, 120);
+  doc.setFillColor(232, 0, 90); // Athanor Magenta
   doc.rect(0, 13, 210, 1.5, 'F');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.setTextColor(240, 240, 240);
+  doc.setTextColor(26, 26, 26);
   doc.text('Athanor Akademie Passau', 20, 9);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(255, 45, 120);
+  doc.setTextColor(232, 0, 90);
   doc.text('Auslagenerstattung', 190, 9, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(220, 220, 220);
-  doc.text('Schulbergstr. 30, 94034 Passau', 20, 12.2);
+  doc.setTextColor(110, 110, 110);
+  doc.text('Schulbergstr. 30, 94034 Passau · buchhaltung@athanor.de', 20, 12.2);
 
   let y = 24;
 
@@ -1469,6 +1810,24 @@ async function buildPDF(receiptNo) {
   doc.setFontSize(10);
   doc.setTextColor(26, 26, 26);
   doc.text(String(receiptNo || '').trim(), 190, y + 5.2, { align: 'right' });
+
+  // voraussichtliche Auszahlung: heute + 3 Werktage (Mo–Fr, ohne Feiertage)
+  function addBusinessDays_(date, days) {
+    var d = new Date(date.getTime());
+    var add = Math.max(0, parseInt(days, 10) || 0);
+    while (add > 0) {
+      d.setDate(d.getDate() + 1);
+      var wd = d.getDay(); // 0=So,1=Mo,...6=Sa
+      if (wd !== 0 && wd !== 6) add--;
+    }
+    return d;
+  }
+  var payoutDate = addBusinessDays_(new Date(), 3);
+  var payoutStr = payoutDate.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(110, 110, 110);
+  doc.text('voraussichtliche Auszahlung: ' + payoutStr, 190, y + 9.6, { align: 'right' });
 
   y += 14;
   doc.setDrawColor(220, 215, 210);
@@ -1539,8 +1898,8 @@ async function buildPDF(receiptNo) {
       ['', '', '', 'Auszahlungsbetrag', total.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €']
     ],
     styles: { font: 'helvetica', fontSize: 9, cellPadding: 3, textColor: [30, 30, 30] },
-    headStyles: { fillColor: [26, 26, 26], textColor: [240, 240, 240], fontStyle: 'bold', fontSize: 9 },
-    footStyles: { fillColor: [240, 238, 235], textColor: [50, 50, 50], fontStyle: 'bold', fontSize: 9 },
+    headStyles: { fillColor: [232, 0, 90], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    footStyles: { fillColor: [250, 244, 247], textColor: [50, 50, 50], fontStyle: 'bold', fontSize: 9 },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
       1: { cellWidth: 26 },
@@ -1554,16 +1913,17 @@ async function buildPDF(receiptNo) {
 
   y = doc.lastAutoTable.finalY + 10;
 
-  // GoBD Hinweis
-  doc.setFillColor(255, 250, 225);
-  doc.setDrawColor(200, 175, 60);
+  // Hinweis (Magenta-Tint statt Gelb)
+  doc.setFillColor(250, 244, 247);
+  doc.setDrawColor(232, 0, 90);
   doc.setLineWidth(0.4);
   doc.rect(20, y, 170, 13, 'FD');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(100, 75, 0);
+  doc.setTextColor(232, 0, 90);
   doc.text('Hinweis:', 24, y + 5);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(26, 26, 26);
   doc.text('Die Originalbelege sind zusätzlich in der Verwaltung der Athanor Akademie Passau abzugeben (GoBD-konform).', 24, y + 10);
   y += 20;
 
@@ -1610,7 +1970,7 @@ async function buildPDF(receiptNo) {
   // Footer Seite 1
   doc.setFontSize(7.5);
   doc.setTextColor(180, 175, 170);
-  doc.text(`${receiptNo} · Athanor Akademie Passau · invoice@athanor.de · Erstellt: ${heute}`,
+  doc.text(`${receiptNo} · Athanor Akademie Passau · Erstellt: ${heute}`,
     105, 290, { align: 'center' }
   );
 
@@ -1624,13 +1984,14 @@ async function buildPDF(receiptNo) {
     if (!images.length) {
       if (p.file) {
         doc.addPage();
-        doc.setFillColor(26, 26, 26);
+        // Header im Magenta-Konzept (statt Schwarzflächen)
+        doc.setFillColor(250, 244, 247);
         doc.rect(0, 0, 210, 10, 'F');
-        doc.setFillColor(255, 45, 120);
+        doc.setFillColor(232, 0, 90);
         doc.rect(0, 9.5, 210, 1, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
-        doc.setTextColor(240, 240, 240);
+        doc.setTextColor(26, 26, 26);
         doc.text('Athanor Akademie Passau · Beleg zur Auslagenerstattung', 20, 7);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -1646,7 +2007,7 @@ async function buildPDF(receiptNo) {
 
         doc.setFontSize(7.5);
         doc.setTextColor(180, 175, 170);
-        doc.text(`${receiptNo || ''} · Seite ${doc.internal.getNumberOfPages()} · Athanor Akademie Passau · ${name} · ${projekt}`,
+        doc.text(`${receiptNo || ''} · Athanor Akademie Passau · Erstellt: ${heute}`,
           105, 290, { align: 'center' }
         );
       }
@@ -1703,7 +2064,7 @@ async function buildPDF(receiptNo) {
 
       doc.setFontSize(7.5);
       doc.setTextColor(180, 175, 170);
-      doc.text(`${receiptNo || ''} · Seite ${doc.internal.getNumberOfPages()} · Athanor Akademie Passau · ${name} · ${projekt}`,
+      doc.text(`${receiptNo || ''} · Athanor Akademie Passau · Erstellt: ${heute}`,
         105, 290, { align: 'center' }
       );
     }
